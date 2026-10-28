@@ -1,4 +1,8 @@
-"""Command line: python -m receipts check --output FILE --source NAME=FILE [...]"""
+"""Command line.
+
+    python -m receipts check --output FILE --source NAME=FILE [...]
+    python -m receipts serve [--port 8765] [--env-file PATH]
+"""
 
 from __future__ import annotations
 
@@ -28,7 +32,22 @@ def main() -> None:
     c.add_argument("--out", help="directory for receipt.json, receipt.html and raw_response.txt")
     c.add_argument("--env-file", help="a .env file holding ANTHROPIC_API_KEY")
     c.add_argument("--model", default=MODEL)
+    s = sub.add_parser("serve", help="run the paste page on this computer")
+    s.add_argument("--port", type=int, default=8765)
+    s.add_argument("--runs-dir", default="runs/web", help="where receipts are saved")
+    s.add_argument("--env-file", help="a .env file holding ANTHROPIC_API_KEY")
+    s.add_argument("--model", default=MODEL)
     a = ap.parse_args()
+
+    if a.cmd == "serve":
+        import uvicorn
+
+        from receipts.web import create_app
+
+        client = anthropic.Anthropic(api_key=load_key(a.env_file))
+        print(f"Open http://127.0.0.1:{a.port} (Ctrl+C to stop)")
+        uvicorn.run(create_app(client, a.runs_dir, a.model), host="127.0.0.1", port=a.port, log_level="warning")
+        return
 
     output = pathlib.Path(a.output).read_text()
     sources = {}

@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check an AI output</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --ink: #121417; --muted: #59616b; --faint: #8a929c; --rule: #d7dbe0; --hair: #e9ecef; --paper: #fff;
+  --con: #b0241b; --focus: #ffbf47;
+  --sans: "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+  --serif: "Source Serif 4", Charter, Georgia, serif;
+  --mono: "JetBrains Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.5 var(--serif); }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px 64px; }
+a { color: var(--ink); text-underline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 0; }
+
+.mast { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 16px 0 6px; border-bottom: 3px solid var(--ink); }
+.mark { font: 800 16px var(--sans); letter-spacing: .02em; }
+.mark span { font-weight: 400; color: var(--muted); }
+.mast nav { font: 14px var(--sans); }
+
+h1 { font: 800 clamp(30px, 4.4vw, 44px)/1.06 var(--sans); letter-spacing: -.015em; margin: 44px 0 14px; max-width: 18ch; }
+.lede { font-size: 20px; line-height: 1.45; color: var(--muted); max-width: 40em; margin: 0 0 26px; }
+.notice { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; justify-content: space-between; border: 1.5px solid var(--ink); padding: 12px 16px; font: 15px/1.45 var(--sans); max-width: 860px; }
+.notice p { margin: 0; flex: 1 1 420px; }
+
+.errors { border: 4px solid var(--con); padding: 16px 20px; margin: 30px 0 0; font-family: var(--sans); max-width: 860px; }
+.errors h2 { font: 700 20px var(--sans); margin: 0 0 8px; }
+.errors ul { margin: 0; padding-left: 20px; color: var(--con); font-weight: 700; }
+
+.parts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; margin-top: 40px; }
+.part { border-top: 1.5px solid var(--ink); padding-top: 14px; min-width: 0; }
+.part.wide { grid-column: 1 / -1; margin-top: 40px; }
+.num { display: block; font: 700 11px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+h2 { font: 800 24px/1.2 var(--sans); margin: 0 0 6px; }
+.hint { font: 15px/1.45 var(--sans); color: var(--muted); margin: 0 0 14px; max-width: 36em; }
+
+label, .label { display: block; font: 700 16px var(--sans); margin: 0 0 4px; }
+label + .hint, .label + .hint { margin-top: -2px; margin-bottom: 8px; }
+input[type=text], textarea { display: block; width: 100%; border: 2px solid var(--ink); border-radius: 0; background: var(--paper); color: var(--ink); padding: 8px 10px; font: 16px/1.5 var(--serif); }
+input[type=text]:focus, textarea:focus { outline: 3px solid var(--focus); outline-offset: 0; box-shadow: inset 0 0 0 1px var(--ink); }
+textarea { resize: vertical; font-size: 15px; line-height: 1.55; }
+#output { min-height: 520px; }
+.source textarea { min-height: 360px; }
+.under { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 6px 0 0; font: 13px var(--sans); color: var(--muted); }
+.count { font: 12px var(--mono); color: var(--faint); }
+.file { position: relative; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; color: var(--ink); }
+.file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.file:focus-within { outline: 3px solid var(--focus); }
+
+.source { margin-bottom: 26px; }
+.source-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: .5px solid var(--rule); padding-bottom: 4px; margin-bottom: 12px; }
+.source-head .n { font: 500 13px var(--mono); color: var(--muted); }
+.field { margin-bottom: 14px; }
+
+.linkbtn { font: 15px var(--sans); background: none; border: 0; padding: 0; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.secondary { font: 700 15px var(--sans); background: var(--paper); color: var(--ink); border: 2px solid var(--ink); padding: 7px 14px; cursor: pointer; }
+.about { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 40px; }
+
+.go { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; margin-top: 30px; }
+.primary { font: 700 18px var(--sans); background: var(--ink); color: #fff; border: 0; padding: 13px 22px; cursor: pointer; box-shadow: 0 3px 0 #000; }
+.primary:active { transform: translateY(2px); box-shadow: 0 1px 0 #000; }
+.primary[disabled] { background: var(--muted); cursor: wait; box-shadow: none; }
+#status { font: 15px var(--sans); color: var(--muted); }
+#status .clock { font-family: var(--mono); color: var(--ink); }
+.method { font: 14px/1.45 var(--sans); color: var(--muted); max-width: 46em; margin: 14px 0 0; }
+
+#past { margin-top: 64px; border-top: 3px solid var(--ink); padding-top: 14px; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th { text-align: left; font: 700 13px var(--sans); color: var(--muted); padding: 6px 16px 6px 0; border-bottom: 1.5px solid var(--ink); }
+td { vertical-align: top; padding: 10px 16px 10px 0; border-bottom: .5px solid var(--rule); font-size: 16px; }
+td.id { font: 500 14px var(--mono); white-space: nowrap; }
+td.when { font: 14px var(--sans); color: var(--muted); white-space: nowrap; }
+.empty { color: var(--muted); font-style: italic; }
+footer { margin-top: 48px; border-top: .5px solid var(--rule); padding-top: 8px; font: 13px var(--sans); color: var(--faint); }
+footer span { font-family: var(--mono); }
+
+@media (max-width: 860px) {
+  .parts, .about { grid-template-columns: 1fr; }
+  .part + .part { margin-top: 40px; }
+  #output { min-height: 340px; }
+  .source textarea { min-height: 260px; }
+  thead { display: none; }
+  tr { display: block; padding: 10px 0; border-bottom: .5px solid var(--rule); }
+  td { display: block; border: 0; padding: 2px 0; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="mast"><div class="mark">TLG Systems <span>Receipt</span></div><nav><a href="#past">Past receipts</a></nav></header>
+
+<h1>Check an AI output against its records</h1>
+<p class="lede">Paste what the AI wrote and the records it should rest on. Every claim comes back set against the records, with the exact passages, and code checks every quote word for word.</p>
+<div class="notice">
+  <p><b>Made-up or anonymised documents only.</b> What you paste is sent to Anthropic's API for checking and saved on this computer with the receipt.</p>
+  <button type="button" class="linkbtn" id="example">Fill in the Ellery example</button>
+</div>
+
+<div class="errors" id="errors" tabindex="-1" hidden>
+  <h2>There is a problem</h2>
+  <ul id="error-list"></ul>
+</div>
+
+<form id="check" novalidate>
+<div class="parts">
+  <section class="part">
+    <span class="num">Part 1</span>
+    <h2 id="output-heading">The AI output</h2>
+    <p class="hint">Exactly what the AI wrote, such as a draft suitability report, an assessment or a chatbot answer. The receipt fingerprints this exact text.</p>
+    <div class="field" id="output-field">
+      <textarea id="output" spellcheck="false" aria-labelledby="output-heading"></textarea>
+      <div class="under"><label class="file">Open a text file<input type="file" accept=".txt,.md,text/plain" data-for="output"></label><span class="count" data-count="output">0 characters</span></div>
+    </div>
+  </section>
+
+  <section class="part">
+    <span class="num">Part 2</span>
+    <h2>The records it should rest on</h2>
+    <p class="hint">The documents the output should be based on, such as a fact-find, a call transcript or a policy schedule. Each one needs a name, which appears on the receipt.</p>
+    <div id="sources"></div>
+    <button type="button" class="secondary" id="add">Add another source</button>
+  </section>
+
+  <section class="part wide">
+    <span class="num">Part 3</span>
+    <h2>About this check</h2>
+    <p class="hint">All optional. The second field is read by the checker before it starts, so one plain line helps.</p>
+    <div class="about">
+      <div class="field"><label for="title">Title</label><p class="hint">Shown at the top of the receipt. For example: Advice file check.</p><input type="text" id="title"></div>
+      <div class="field"><label for="context">What the output is</label><p class="hint">For example: Draft suitability report for equity release, checked against the client fact-find.</p><input type="text" id="context"></div>
+      <div class="field"><label for="output_label">How the receipt should refer to it</label><p class="hint">For example: The draft report. Leave blank to use “The output”.</p><input type="text" id="output_label"></div>
+      <div class="field"><label for="banner">Notice on the receipt</label><p class="hint">For example, to mark a made-up file as a demonstration.</p><input type="text" id="banner"></div>
+    </div>
+  </section>
+</div>
+
+<div class="go">
+  <button type="submit" class="primary" id="submit">Make the receipt</button>
+  <span id="status" role="status" aria-live="polite"></span>
+</div>
+<p class="method">One model reading, then code matches every quote against the document it names. A claim whose quotes do not match is listed as “Check by hand”, never as a finding.</p>
+</form>
+
+<section id="past">
+  <span class="num">Record</span>
+  <h2>Past receipts</h2>
+  <table>
+    <thead><tr><th>Receipt</th><th>Title</th><th>Verdict</th><th>Checked</th></tr></thead>
+    <tbody id="past-rows"><tr><td colspan="4" class="empty">Loading.</td></tr></tbody>
+  </table>
+</section>
+
+<footer id="foot">TLG Systems Ltd. Runs on this computer.</footer>
+</div>
+
+<template id="source-template">
+  <div class="source">
+    <div class="source-head"><span class="n"></span><button type="button" class="linkbtn remove">Remove</button></div>
+    <div class="field name-field"><label>Name</label><p class="hint">As it should appear on the receipt. For example: Fact-find.</p><input type="text" class="name"></div>
+    <div class="field text-field"><label>Text</label>
+      <textarea class="text" spellcheck="false"></textarea>
+      <div class="under"><label class="file">Open a text file<input type="file" accept=".txt,.md,text/plain"></label><span class="count">0 characters</span></div>
+    </div>
+  </div>
+</template>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const sources = $("#sources");
+let made = 0;
+
+function count(textarea, el) {
+  const n = textarea.value.length;
+  el.textContent = n.toLocaleString("en-GB") + (n === 1 ? " character" : " characters");
+}
+
+function openFile(input, textarea, counter, nameInput) {
+  input.addEventListener("change", async () => {
+    const file = input.files[0];
+    if (!file) return;
+    textarea.value = await file.text();
+    count(textarea, counter);
+    if (nameInput && !nameInput.value.trim()) nameInput.value = file.name.replace(/\.[^.]+$/, "");
+    input.value = "";
+  });
+}
+
+function addSource(name = "", text = "") {
+  const el = $("#source-template").content.firstElementChild.cloneNode(true);
+  const id = ++made;
+  const nameInput = $(".name", el), textarea = $(".text", el), counter = $(".count", el);
+  nameInput.id = "source-name-" + id;
+  textarea.id = "source-text-" + id;
+  $(".name-field label", el).htmlFor = nameInput.id;
+  $(".text-field > label", el).htmlFor = textarea.id;
+  nameInput.value = name;
+  textarea.value = text;
+  count(textarea, counter);
+  textarea.addEventListener("input", () => count(textarea, counter));
+  openFile($("input[type=file]", el), textarea, counter, nameInput);
+  $(".remove", el).addEventListener("click", () => { el.remove(); renumber(); });
+  sources.append(el);
+  renumber();
+  return el;
+}
+
+function renumber() {
+  const all = sources.querySelectorAll(".source");
+  all.forEach((el, i) => {
+    $(".n", el).textContent = "Source " + (i + 1);
+    $(".remove", el).hidden = all.length === 1;
+  });
+  $("#add").hidden = all.length >= 6;
+}
+
+const output = $("#output");
+const outputCount = $("[data-count=output]");
+output.addEventListener("input", () => count(output, outputCount));
+openFile($("[data-for=output]"), output, outputCount);
+$("#add").addEventListener("click", () => $(".name", addSource()).focus());
+addSource();
+
+$("#example").addEventListener("click", async () => {
+  const r = await fetch("/api/example");
+  if (!r.ok) return showProblems(["The example files are not on this computer."]);
+  const ex = await r.json();
+  output.value = ex.output;
+  count(output, outputCount);
+  sources.innerHTML = "";
+  ex.sources.forEach(s => addSource(s.name, s.text));
+  for (const k of ["title", "context", "output_label", "banner"]) $("#" + k).value = ex[k];
+  hideProblems();
+});
+
+function showProblems(list) {
+  const ul = $("#error-list");
+  ul.innerHTML = "";
+  list.forEach(p => { const li = document.createElement("li"); li.textContent = p; ul.append(li); });
+  $("#errors").hidden = false;
+  $("#errors").focus();
+}
+function hideProblems() { $("#errors").hidden = true; }
+
+$("#check").addEventListener("submit", async e => {
+  e.preventDefault();
+  hideProblems();
+  const body = {
+    output: output.value,
+    sources: [...sources.querySelectorAll(".source")].map(el => ({ name: $(".name", el).value, text: $(".text", el).value })),
+  };
+  for (const k of ["title", "context", "output_label", "banner"]) body[k] = $("#" + k).value;
+
+  const button = $("#submit"), status = $("#status");
+  button.disabled = true;
+  const started = Date.now();
+  const tick = () => {
+    const s = Math.floor((Date.now() - started) / 1000);
+    status.innerHTML = 'Checking. <span class="clock">' + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0") +
+      "</span> so far. A long file can take a few minutes.";
+  };
+  tick();
+  const timer = setInterval(tick, 1000);
+  try {
+    const r = await fetch("/api/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const data = await r.json().catch(() => ({}));
+    if (r.ok) { location.href = data.url; return; }
+    showProblems(data.problems || [typeof data.detail === "string" ? data.detail : "Something went wrong. Nothing was saved."]);
+  } catch {
+    showProblems(["The page lost contact with the checker. Is it still running?"]);
+  } finally {
+    clearInterval(timer);
+    button.disabled = false;
+    status.textContent = "";
+  }
+});
+
+(async () => {
+  const rows = $("#past-rows");
+  try {
+    const data = await (await fetch("/api/receipts")).json();
+    $("#foot").innerHTML = "TLG Systems Ltd. Runs on this computer. Engine <span></span>, prompt <span></span>, model <span></span>.";
+    const spans = $("#foot").querySelectorAll("span");
+    [data.engine, data.prompt, data.model].forEach((v, i) => spans[i].textContent = v);
+    rows.innerHTML = "";
+    if (!data.receipts.length) {
+      rows.innerHTML = '<tr><td colspan="4" class="empty">None yet. Each receipt you make is listed here.</td></tr>';
+      return;
+    }
+    for (const r of data.receipts) {
+      const tr = document.createElement("tr");
+      const when = new Date(r.checked).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+      tr.innerHTML = '<td class="id"><a></a></td><td></td><td></td><td class="when"></td>';
+      const a = $("a", tr);
+      a.href = "/r/" + r.id;
+      a.textContent = r.id;
+      tr.children[1].textContent = r.title;
+      tr.children[2].textContent = r.verdict;
+      tr.children[3].textContent = when;
+      rows.append(tr);
+    }
+  } catch {
+    rows.innerHTML = '<tr><td colspan="4" class="empty">Could not load past receipts.</td></tr>';
+  }
+})();
+</script>
+</body>
+</html>

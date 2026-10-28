@@ -3,10 +3,17 @@ name = "receipts"
 version = "0.1.0"
 description = "Claim-by-claim audit receipts for AI output in financial services (TLG Systems)"
 requires-python = ">=3.12"
-dependencies = ["anthropic>=0.116"]
+dependencies = [
+    "anthropic>=0.116",
+    "fastapi>=0.162.0",
+    "uvicorn>=0.54.0",
+]
 
 [dependency-groups]
-dev = ["pytest>=8"]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=8",
+]
 
 [build-system]
 requires = ["hatchling"]

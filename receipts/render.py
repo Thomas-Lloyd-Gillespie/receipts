@@ -1,14 +1,34 @@
-"""Render a receipt as a printable HTML page.
+"""Render a receipt as a printable document.
 
-Quotes are shown exactly as verified. Only the model's own prose (why,
-uncertainty) has long dashes evened out for display.
+Modelled on documents people already trust for this job: a fact check (the
+verdict is the headline; what was claimed sits beside what is true), an
+assurance report (conclusion first, then subject, criteria, basis and
+limits), and a file checker's marked-up report (numbered findings keyed to
+the exact passages). Quotes are shown exactly as verified. Only the model's
+own prose has long dashes evened out for display.
 """
 
 from __future__ import annotations
 
+import datetime
 import html
+import re
 
+from receipts.verify import sha256
+
+LABELS = {
+    "CONTRADICTED": "Contradicted",
+    "UNSUPPORTED": "Not established",
+    "NEEDS_HUMAN_CHECK": "Check by hand",
+    "SUPPORTED": "Consistent",
+}
+CLASS = {"CONTRADICTED": "con", "UNSUPPORTED": "uns", "NEEDS_HUMAN_CHECK": "chk", "SUPPORTED": "ok"}
 ATTENTION = ("CONTRADICTED", "UNSUPPORTED", "NEEDS_HUMAN_CHECK")
+FONTS = (
+    "https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;700;800"
+    "&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400"
+    "&family=JetBrains+Mono:wght@400;500&display=swap"
+)
 
 
 def _e(text: str) -> str:
@@ -19,104 +39,298 @@ def _prose(text: str) -> str:
     return html.escape(text.replace(" — ", ", ").replace("—", ", ").replace("–", "-"))
 
 
-def _quotes(passages: list[dict]) -> str:
-    if not passages:
-        return "<i>Nothing in the sources</i>"
-    return "<br>".join(f"<span class='src'>{_e(p['source'])}</span> “{_e(p['quote'])}”" for p in passages)
+def _plural(n: int, word: str) -> str:
+    return f"{n} {word}{'' if n == 1 else 's'}"
 
 
-def _claim_rows(claims: list[dict], extra: str = "why") -> str:
-    rows = []
-    for c in claims:
-        note = _prose(c["why"])
-        if c.get("uncertainty"):
-            note += f"<br><span class='unc'>Open question: {_prose(c['uncertainty'])}</span>"
-        if extra == "problems" and c["problems"]:
-            note += "<br><span class='prob'>" + "; ".join(_e(p) for p in c["problems"]) + "</span>"
-        counter = ""
-        if c.get("counter_quotes"):
-            counter = f"<br><span class='ctr'>Cuts against it:</span><br>{_quotes(c['counter_quotes'])}"
-        rows.append(
-            f"<tr><td>“{_e(c['output_quote'])}”</td><td>{_quotes(c['source_quotes'])}{counter}</td><td>{note}</td></tr>"
-        )
-    return "".join(rows)
+def receipt_number(receipt: dict) -> str:
+    h = receipt["receipt_sha256"].upper()
+    return f"R-{h[:4]}-{h[4:8]}"
 
 
-def _section(title: str, claims: list[dict], extra: str = "why") -> str:
-    if not claims:
-        return ""
-    head = "<tr><th style='width:31%'>The output says</th><th style='width:36%'>The sources say</th><th>Why it matters</th></tr>"
-    return f"<h2>{title}</h2><table>{head}{_claim_rows(claims, extra)}</table>"
-
-
-def render(receipt: dict, title: str = "Receipt for an AI output", subtitle: str = "", banner: str = "") -> str:
+def headline(receipt: dict, output_label: str, source_phrase: str) -> str:
+    """The verdict as one sentence, built from the counts. No model writes it."""
     claims = receipt["claims"]
-    by = {s: [c for c in claims if c["status"] == s] for s in ("SUPPORTED", *ATTENTION)}
+    n = {s: sum(c["status"] == s for c in claims) for s in LABELS}
+    left_out = sum(o["status"] == "VERIFIED" for o in receipt["omissions"])
+    parts = []
+    if n["CONTRADICTED"]:
+        parts.append(f"contradicts {source_phrase} in {_plural(n['CONTRADICTED'], 'place')}")
+    if n["UNSUPPORTED"]:
+        parts.append(f"makes {_plural(n['UNSUPPORTED'], 'claim')} {source_phrase} does not support")
+    if left_out:
+        parts.append(f"leaves out {_plural(left_out, 'fact')}")
+    if n["NEEDS_HUMAN_CHECK"]:
+        parts.append(f"has {_plural(n['NEEDS_HUMAN_CHECK'], 'claim')} to check by hand")
+    if not parts:
+        return f"{output_label} is consistent with {source_phrase} on all {_plural(len(claims), 'claim')} checked."
+    body = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
+    return f"{output_label} {body}."
+
+
+def _ordered(claims: list[dict], text: str | None) -> list[dict]:
+    if not text:
+        return claims
+    pos = {id(c): (_locate(c["output_quote"], text) or (len(text), 0))[0] for c in claims}
+    return sorted(claims, key=lambda c: pos[id(c)])
+
+
+def _pattern(quote: str) -> str:
+    out = []
+    for token in quote.split():
+        t = re.escape(token)
+        t = t.replace("'", "['‘’]").replace('"', '["“”]').replace(r"\-", "[-–—]")
+        out.append(t)
+    return r"\s+".join(out)
+
+
+def _locate(quote: str, text: str) -> tuple[int, int] | None:
+    if not quote.strip():
+        return None
+    m = re.search(_pattern(quote), text)
+    return (m.start(), m.end()) if m else None
+
+
+def _passages(passages: list[dict]) -> str:
+    return "".join(
+        f"<blockquote class='src'><p>{_e(p['quote'])}</p><cite>{_e(p['source'])}</cite></blockquote>" for p in passages
+    )
+
+
+def _finding(ref: str, c: dict, output_label: str) -> str:
+    status = c["status"]
+    extra = ""
+    if c.get("counter_quotes"):
+        extra += f"<p class='sub-label'>Cuts against it</p>{_passages(c['counter_quotes'])}"
+    if c.get("uncertainty"):
+        extra += f"<p class='note'><b>Open question.</b> {_prose(c['uncertainty'])}</p>"
+    if status == "NEEDS_HUMAN_CHECK" and c.get("problems"):
+        extra += "<p class='note'><b>Why it failed verification.</b> " + "; ".join(_e(p) for p in c["problems"]) + ".</p>"
+    sources = _passages(c["source_quotes"]) or "<p class='none'>Nothing in the sources bears on this.</p>"
+    return f"""<section class="finding {CLASS[status]}">
+<div class="gutter"><span class="ref">{ref}</span><span class="tag">{LABELS[status]}</span></div>
+<div class="body">
+<p class="sub-label">{_e(output_label)} says</p>
+<blockquote class="claim"><p>{_e(c['output_quote'])}</p></blockquote>
+<p class="sub-label">The sources say</p>
+{sources}
+<p class="why"><b>{LABELS[status]}.</b> {_prose(c['why'])}</p>
+{extra}
+</div></section>"""
+
+
+def _markup(text: str, marks: list[tuple[str, str, str]]) -> str:
+    spans = []
+    for ref, status, quote in marks:
+        loc = _locate(quote, text)
+        if loc:
+            spans.append((loc[0], loc[1], ref, status))
+    spans.sort()
+    out, cursor = [], 0
+    for start, end, ref, status in spans:
+        if start < cursor:
+            continue
+        out.append(_e(text[cursor:start]))
+        out.append(f"<mark class='{CLASS[status]}'>{_e(text[start:end])}</mark><sup class='{CLASS[status]}'>{ref}</sup>")
+        cursor = end
+    out.append(_e(text[cursor:]))
+    return "".join(out)
+
+
+def render(
+    receipt: dict,
+    title: str = "Receipt for an AI output",
+    subtitle: str = "",
+    banner: str = "",
+    output_text: str | None = None,
+    output_label: str = "The output",
+    source_phrase: str | None = None,
+) -> str:
+    if output_text is not None and sha256(output_text) != receipt["inputs"]["output"]["sha256"]:
+        raise ValueError("output_text is not the text this receipt was made from")
+    run, inputs = receipt["run"], receipt["inputs"]
+    names = [s["name"] for s in inputs["sources"]]
+    if source_phrase is None:
+        source_phrase = f"the {names[0][0].lower()}{names[0][1:]}" if len(names) == 1 else "its sources"
+
+    claims = receipt["claims"]
+    attention = [c for s in ATTENTION for c in _ordered([c for c in claims if c["status"] == s], output_text)]
+    consistent = _ordered([c for c in claims if c["status"] == "SUPPORTED"], output_text)
     omissions = [o for o in receipt["omissions"] if o["status"] == "VERIFIED"]
     rejected = [o for o in receipt["omissions"] if o["status"] == "REJECTED"]
-    attention = sum(len(by[s]) for s in ATTENTION)
-    run, inputs = receipt["run"], receipt["inputs"]
+    refs = {id(c): f"F{i}" for i, c in enumerate(attention, 1)}
+    refs.update({id(c): f"C{i}" for i, c in enumerate(consistent, 1)})
 
-    omission_rows = "".join(
-        f"<tr><td><span class='src'>{_e(o['source'])}</span> “{_e(o['quote'])}”</td><td>{_prose(o['why'])}</td></tr>"
-        for o in omissions
+    checked = datetime.datetime.fromisoformat(run["created_at"])
+    when = f"{checked:%-d %B %Y}, {checked:%H:%M} UTC"
+    number = receipt_number(receipt)
+    verdict = headline(receipt, output_label, source_phrase)
+
+    index = "".join(
+        f"<li class='{CLASS[c['status']]}'><span class='ref'>{refs[id(c)]}</span><span class='tag'>{LABELS[c['status']]}</span>"
+        f"<span class='q'>{_e(c['output_quote'])}</span></li>"
+        for c in attention
     )
-    omission_html = (
-        f"<h2>In the sources, left out of the output</h2><table><tr><th style='width:45%'>The sources say</th><th>Why it matters</th></tr>{omission_rows}</table>"
-        if omissions
-        else ""
+    if omissions:
+        index += (
+            f"<li class='left'><span class='ref'>L1\u2013{len(omissions)}</span><span class='tag'>Left out</span>"
+            f"<span class='q'>{_plural(len(omissions), 'fact')} in {_e(source_phrase)}, listed in full below</span></li>"
+            if len(omissions) > 1
+            else f"<li class='left'><span class='ref'>L1</span><span class='tag'>Left out</span><span class='q'>{_e(omissions[0]['quote'])}</span></li>"
+        )
+    findings = "".join(_finding(refs[id(c)], c, output_label) for c in attention)
+    left_out = "".join(
+        f"""<section class="finding left"><div class="gutter"><span class="ref">L{i}</span><span class="tag">Left out</span></div>
+<div class="body">{_passages([o])}<p class="why"><b>Left out.</b> {_prose(o['why'])}</p></div></section>"""
+        for i, o in enumerate(omissions, 1)
     )
-    source_lines = "".join(
-        f"<tr><td>Source: {_e(s['name'])}</td><td>{s['sha256'][:16]}… ({s['chars']:,} characters)</td></tr>" for s in inputs["sources"]
+    consistent_rows = "".join(
+        f"<tr><td class='ref'>{refs[id(c)]}</td><td>{_e(c['output_quote'])}</td><td>"
+        + "<br>".join(f"{_e(p['quote'])} <cite>{_e(p['source'])}</cite>" for p in c["source_quotes"])
+        + (f"<div class='note'><b>Open question.</b> {_prose(c['uncertainty'])}</div>" if c.get("uncertainty") else "")
+        + (
+            "<div class='note'><b>Cuts against it.</b> "
+            + "; ".join(f"{_e(p['quote'])} <cite>{_e(p['source'])}</cite>" for p in c["counter_quotes"])
+            + "</div>"
+            if c.get("counter_quotes")
+            else ""
+        )
+        + "</td></tr>"
+        for c in consistent
     )
+    source_meta = "".join(
+        f"<dt>Checked against</dt><dd>{_e(s['name'])}<span class='hash'>{s['sha256'][:12]}</span></dd>" for s in inputs["sources"]
+    )
+    source_rows = "".join(
+        f"<tr><th>Source: {_e(s['name'])}</th><td>sha256 {s['sha256']}<br>{s['chars']:,} characters</td></tr>" for s in inputs["sources"]
+    )
+    appendix = ""
+    if output_text is not None:
+        marks = [(refs[id(c)], c["status"], c["output_quote"]) for c in attention + consistent]
+        appendix = f"""<section class="appendix"><h2><span class="num">Part {{n}}</span>{_e(output_label)}, marked up</h2>
+<p class="lede">The full text that was checked. Each marked passage carries the number of its finding: red contradicts the sources, amber is not established by them, green is consistent.</p>
+<div class="doc">{_markup(output_text, marks)}</div></section>"""
+    parts = iter(range(1, 10))
+    if appendix:
+        appendix = appendix.replace("{n}", str(next(parts)))
+    attention_part, left_part = next(parts), next(parts) if omissions else None
+    consistent_part, basis_part, verify_part = next(parts), next(parts), next(parts)
     banner_html = f"<div class='banner'>{banner}</div>" if banner else ""
-    sub_html = f"<p class='sub'>{_e(subtitle)}</p>" if subtitle else ""
+    subtitle_html = f"<p class='subject'>{_e(subtitle)}</p>" if subtitle else ""
 
-    return f"""<!doctype html><html><head><meta charset="utf-8"><title>{_e(title)}</title><style>
-@page {{ size: A4; margin: 16mm 15mm; }}
-body {{ font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; font-size: 9.6pt; color: #1d1d1f; line-height: 1.38; max-width: 190mm; margin: 0 auto; }}
-h1 {{ font-family: Georgia, serif; font-size: 19pt; margin: 0 0 2pt; }}
-h2 {{ font-family: Georgia, serif; font-size: 12.5pt; margin: 16pt 0 5pt; color: #7a2e1f; }}
-.sub {{ color: #555; margin: 0 0 9pt; }}
-.banner {{ background: #f6efe6; border-left: 3pt solid #7a2e1f; padding: 6pt 9pt; margin: 8pt 0; }}
-.nums {{ display: flex; gap: 8pt; margin: 9pt 0 4pt; }}
-.n {{ flex: 1; border: 0.6pt solid #d8d2c8; border-radius: 4pt; padding: 6pt 8pt; }}
-.n b {{ display: block; font-family: Georgia, serif; font-size: 17pt; color: #7a2e1f; }}
-table {{ width: 100%; border-collapse: collapse; margin-top: 3pt; }}
-th {{ text-align: left; font-size: 8.4pt; text-transform: uppercase; letter-spacing: .04em; color: #666; border-bottom: 0.8pt solid #999; padding: 3pt 5pt; }}
-td {{ vertical-align: top; border-bottom: 0.5pt solid #e2ddd5; padding: 4.5pt 5pt; }}
-tr {{ page-break-inside: avoid; }}
-h2, tr:first-child, tr:nth-child(2) {{ break-after: avoid; }}
-.src {{ font-size: 7.6pt; text-transform: uppercase; letter-spacing: .04em; color: #7a6a55; }}
-.unc {{ color: #6b4e00; }}
-.prob {{ color: #8a1c10; }}
-.ctr {{ font-size: 8pt; color: #6b4e00; }}
-.receipt td {{ font-family: Menlo, monospace; font-size: 8pt; border: none; padding: 1.5pt 5pt; }}
-.foot {{ margin-top: 14pt; color: #666; font-size: 8.4pt; border-top: 0.5pt solid #ccc; padding-top: 5pt; }}
+    return f"""<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><title>{_e(title)} ({number})</title>
+<link rel="stylesheet" href="{FONTS}">
+<style>
+:root {{ --ink:#121417; --muted:#59616b; --faint:#8a929c; --rule:#d7dbe0; --hair:#e9ecef; --paper:#fff;
+  --con:#b0241b; --con-bg:#fbe6e3; --uns:#8f5d00; --uns-bg:#fbefd5; --chk:#5b3fa0; --chk-bg:#ece6f7; --ok:#2c6a4a; --ok-bg:#e3f0e8; --left:#1d4f8f; --left-bg:#e3ecf7;
+  --sans:"Libre Franklin","Franklin Gothic Medium","Helvetica Neue",Arial,sans-serif; --serif:"Source Serif 4",Charter,"Iowan Old Style",Georgia,serif; --mono:"JetBrains Mono",Menlo,monospace; }}
+@page {{ size: A4; margin: 17mm 16mm 18mm 16mm;
+  @bottom-left {{ content: "{number}"; font: 7.5pt "JetBrains Mono", Menlo, monospace; color: #8a929c; }}
+  @bottom-right {{ content: "Page " counter(page) " of " counter(pages); font: 7.5pt "Libre Franklin", Arial, sans-serif; color: #8a929c; }} }}
+* {{ box-sizing: border-box; }}
+html {{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+body {{ margin: 0 auto; max-width: 178mm; background: var(--paper); color: var(--ink); font: 10pt/1.5 var(--serif); }}
+.mast {{ display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2.2pt solid var(--ink); padding-bottom: 5pt; }}
+.mark {{ font: 800 11pt var(--sans); letter-spacing: .02em; }}
+.mark span {{ font-weight: 400; color: var(--muted); }}
+.mast .no {{ font: 500 8.5pt var(--mono); color: var(--muted); }}
+.top {{ display: grid; grid-template-columns: 47mm 1fr; gap: 0 8mm; margin-top: 9mm; }}
+.rail {{ font: 8.4pt/1.45 var(--sans); color: var(--muted); border-top: .6pt solid var(--rule); padding-top: 3mm; }}
+.rail dt {{ font-weight: 700; color: var(--ink); text-transform: uppercase; font-size: 6.8pt; letter-spacing: .09em; margin-top: 4mm; }}
+.rail dt:first-child {{ margin-top: 0; }}
+.rail dd {{ margin: 1pt 0 0; }}
+.rail .hash {{ display: block; font: 7.4pt var(--mono); color: var(--faint); }}
+.kicker {{ font: 700 7.6pt var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--con); margin: 0 0 3mm; }}
+h1 {{ font: 800 23pt/1.08 var(--sans); letter-spacing: -.012em; margin: 0 0 4mm; }}
+.subject {{ font: italic 11pt/1.45 var(--serif); color: var(--muted); margin: 0 0 5mm; }}
+.banner {{ font: 8.6pt/1.45 var(--sans); border: .8pt solid var(--ink); padding: 2.4mm 3mm; margin: 0 0 5mm; }}
+.conclusion {{ border-top: .6pt solid var(--rule); padding-top: 3mm; }}
+.label {{ font: 700 6.8pt var(--sans); letter-spacing: .09em; text-transform: uppercase; margin: 0 0 1.5mm; }}
+.conclusion p {{ margin: 0 0 2.5mm; }}
+.index {{ list-style: none; margin: 7mm 0 0; padding: 0; border-top: 1.4pt solid var(--ink); }}
+.index li {{ display: grid; grid-template-columns: 11mm 26mm 1fr; gap: 3mm; padding: 1.3mm 0; border-bottom: .5pt solid var(--hair); font: 8.8pt/1.4 var(--sans); break-inside: avoid; }}
+.index .ref {{ font: 500 8.4pt var(--mono); color: var(--muted); }}
+.index .tag {{ font-weight: 700; font-size: 7.4pt; text-transform: uppercase; letter-spacing: .07em; padding-top: .6pt; }}
+.index .q {{ font-family: var(--serif); font-size: 9.4pt; }}
+li.con .tag, .finding.con .tag {{ color: var(--con); }} li.uns .tag, .finding.uns .tag {{ color: var(--uns); }}
+li.chk .tag, .finding.chk .tag {{ color: var(--chk); }} li.left .tag, .finding.left .tag {{ color: var(--left); }}
+h2 {{ font: 800 14pt/1.2 var(--sans); margin: 11mm 0 1.5mm; break-after: avoid; break-inside: avoid; }}
+h2 .num {{ display: block; font: 700 7pt var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2mm; }}
+.lede {{ color: var(--muted); margin: 0 0 4mm; font-size: 9.6pt; }}
+.finding {{ display: grid; grid-template-columns: 26mm 1fr; gap: 0 6mm; border-top: .6pt solid var(--rule); padding: 4mm 0 3mm; break-inside: avoid; }}
+.gutter .ref {{ display: block; font: 800 17pt/1 var(--sans); }}
+.gutter .tag {{ display: block; margin-top: 1.6mm; font: 700 7pt var(--sans); letter-spacing: .08em; text-transform: uppercase; }}
+.sub-label {{ font: 700 6.8pt var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0 0 1.2mm; }}
+blockquote {{ margin: 0 0 3mm; }}
+blockquote p {{ margin: 0; }}
+.claim p {{ font-size: 11.6pt; line-height: 1.4; padding-left: 3mm; border-left: 2.2pt solid var(--ink); }}
+.finding.con .claim p {{ border-color: var(--con); }} .finding.uns .claim p {{ border-color: var(--uns); }} .finding.chk .claim p {{ border-color: var(--chk); }}
+.src p {{ padding-left: 3mm; border-left: .8pt solid var(--rule); }}
+.src cite, td cite {{ display: block; padding-left: 3mm; font: normal 700 6.6pt var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--faint); margin-top: .8mm; }}
+td cite {{ display: inline; padding: 0; }}
+.none {{ font-style: italic; color: var(--muted); margin: 0 0 3mm; }}
+.why {{ margin: 0 0 2mm; }}
+.note {{ font-size: 9.2pt; color: var(--muted); margin: 1mm 0 2mm; }}
+.note b {{ color: var(--ink); }}
+table {{ width: 100%; border-collapse: collapse; }}
+.consistent td {{ vertical-align: top; padding: 2.2mm 2.5mm 2.2mm 0; border-bottom: .5pt solid var(--hair); font-size: 9.2pt; line-height: 1.42; }}
+.consistent tr {{ break-inside: avoid; }}
+.consistent td.ref {{ font: 500 8.2pt var(--mono); color: var(--ok); width: 9mm; }}
+.consistent td:nth-child(2) {{ width: 44%; }}
+.basis {{ display: grid; grid-template-columns: 1fr 1fr; gap: 0 8mm; font-size: 9.4pt; }}
+.basis h3 {{ font: 700 8.6pt var(--sans); margin: 0 0 1.5mm; }}
+.basis p {{ margin: 0 0 3mm; }}
+.verify th {{ text-align: left; font: 700 7.6pt var(--sans); padding: 1.4mm 4mm 1.4mm 0; width: 38mm; vertical-align: top; border-bottom: .5pt solid var(--hair); }}
+.verify td {{ font: 7.8pt/1.5 var(--mono); padding: 1.4mm 0; border-bottom: .5pt solid var(--hair); word-break: break-all; }}
+.appendix, h2.first {{ break-before: page; }}
+.appendix h2 {{ margin-top: 0; }} h2.first {{ margin-top: 0; }}
+.doc {{ white-space: pre-wrap; font-size: 9.8pt; line-height: 1.62; border-top: 1.4pt solid var(--ink); padding-top: 4mm; }}
+mark {{ color: inherit; padding: .3pt 0; }}
+mark.con {{ background: var(--con-bg); box-shadow: inset 0 -1.2pt var(--con); }} mark.uns {{ background: var(--uns-bg); box-shadow: inset 0 -1.2pt var(--uns); }}
+mark.chk {{ background: var(--chk-bg); box-shadow: inset 0 -1.2pt var(--chk); }} mark.ok {{ background: none; box-shadow: inset 0 -.8pt var(--ok); }}
+sup {{ font: 700 6.4pt var(--sans); margin-left: .6pt; }}
+sup.con {{ color: var(--con); }} sup.uns {{ color: var(--uns); }} sup.chk {{ color: var(--chk); }} sup.ok {{ color: var(--ok); }}
+.end {{ margin-top: 9mm; border-top: .6pt solid var(--rule); padding-top: 2mm; font: 7.8pt var(--sans); color: var(--faint); }}
 </style></head><body>
-<h1>{_e(title)}</h1>
-{sub_html}{banner_html}
-<div class="nums">
-<div class="n"><b>{len(claims)}</b>claims checked</div>
-<div class="n"><b>{attention}</b>need attention</div>
-<div class="n"><b>{len(omissions)}</b>facts left out</div>
+<header class="mast"><div class="mark">TLG Systems <span>Receipt</span></div><div class="no">{number}</div></header>
+<div class="top">
+<dl class="rail">
+<dt>Receipt</dt><dd>{number}</dd>
+<dt>Checked</dt><dd>{when}</dd>
+<dt>Subject</dt><dd>{_e(output_label)}<span class="hash">{inputs['output']['sha256'][:12]}</span></dd>
+{source_meta}
+<dt>Method</dt><dd>One model reading, then every quote checked word for word by code</dd>
+<dt>Model</dt><dd>{_e(run['model'])}<span class="hash">prompt {_e(run['prompt_version'])}, engine {_e(run['engine_version'])}</span></dd>
+</dl>
+<main>
+<p class="kicker">{_e(title)}</p>
+<h1>{_e(verdict)}</h1>
+{subtitle_html}{banner_html}
+<div class="conclusion"><p class="label">Conclusion</p>
+<p>Of {_plural(len(claims), 'claim')} {_e(output_label[0].lower() + output_label[1:])} makes about the case, {len(attention)} need attention and {len(consistent)} are consistent with {_e(source_phrase)}. {_plural(len(omissions), 'fact')} in {_e(source_phrase)} {'is' if len(omissions) == 1 else 'are'} left out. Every quote in this receipt was matched word for word against the document it comes from.</p>
+<p>This receipt does not judge whether the output is right or suitable. That decision stays with the reviewer.</p></div>
+<ol class="index">{index}</ol>
+</main></div>
+{appendix}
+<h2 class="first"><span class="num">Part {attention_part}</span>What needs attention</h2>
+<p class="lede">Each finding sets what {_e(output_label[0].lower() + output_label[1:])} says beside what the sources say.</p>
+{findings}
+{f'<h2><span class="num">Part {left_part}</span>In the sources, left out</h2><p class="lede">Facts the sources record that {_e(output_label[0].lower() + output_label[1:])} does not reflect.</p>' + left_out if omissions else ''}
+<h2><span class="num">Part {consistent_part}</span>Consistent with the sources</h2>
+<table class="consistent">{consistent_rows}</table>
+
+<h2><span class="num">Part {basis_part}</span>Basis and limits</h2>
+<div class="basis">
+<div><h3>How this was checked</h3><p>A language model read the output and the sources and proposed each claim, its status and the passages it rests on. Code then matched every quote word for word against the document it names. A claim whose quotes did not match is listed as "Check by hand", never as a finding. {"No proposed omission failed that test." if not rejected else _plural(len(rejected), "proposed omission") + " failed that test and " + ("was" if len(rejected) == 1 else "were") + " left out of this receipt."}</p></div>
+<div><h3>What this receipt does not cover</h3><p>It does not decide whether the output is right, suitable or compliant. It does not check facts against anything outside the sources listed. A claim marked consistent means the sources say the same, not that the sources are correct.</p></div>
 </div>
-<p>Every claim the output makes about the case was compared with the sources. Code then checked each quote word for word against the text it came from. A claim whose quotes did not check out is listed under "Needs a human check" and is never treated as verified.</p>
-{_section("Doesn't match the sources", by["CONTRADICTED"])}
-{_section("Not established by the sources", by["UNSUPPORTED"])}
-{_section("Needs a human check", by["NEEDS_HUMAN_CHECK"], extra="problems")}
-{omission_html}
-{_section("Matches the sources", by["SUPPORTED"])}
-<h2>The receipt</h2>
-<table class="receipt">
-<tr><td>Checked at</td><td>{_e(run["created_at"])}</td></tr>
-<tr><td>Model</td><td>{_e(run["model"])} (prompt {_e(run["prompt_version"])}, engine {_e(run["engine_version"])})</td></tr>
-<tr><td>Output</td><td>{inputs["output"]["sha256"][:16]}… ({inputs["output"]["chars"]:,} characters)</td></tr>
-{source_lines}
-<tr><td>Omissions rejected by code</td><td>{len(rejected)}</td></tr>
-<tr><td>Receipt fingerprint</td><td>{receipt["receipt_sha256"]}</td></tr>
+<h2><span class="num">Part {verify_part}</span>Verification</h2>
+<p class="lede">Anyone holding the same files can recompute these fingerprints. If a file changes by one character, its fingerprint will not match.</p>
+<table class="verify">
+<tr><th>Receipt</th><td>{number}<br>sha256 {receipt['receipt_sha256']}</td></tr>
+<tr><th>Output checked</th><td>sha256 {inputs['output']['sha256']}<br>{inputs['output']['chars']:,} characters</td></tr>
+{source_rows}
+<tr><th>Model response</th><td>sha256 {run['raw_response_sha256']}<br>{run['input_tokens']:,} tokens in, {run['output_tokens']:,} out{('<br>request ' + _e(run['request_id'])) if run.get('request_id') else ''}</td></tr>
 </table>
-<h2>What this check does not do</h2>
-<p>It does not decide whether the output is right or suitable. That judgement stays with the reviewer. It shows, with quotes from both sides, where the output and its sources disagree, what the sources do not establish, and what was left out, so the reviewer can go straight to those points.</p>
-<p class="foot">TLG Systems Ltd. Engine {_e(run["engine_version"])}.</p>
+<p class="end">TLG Systems Ltd. Receipt {number}. Engine {_e(run['engine_version'])}.</p>
 </body></html>"""

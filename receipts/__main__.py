@@ -22,7 +22,9 @@ def main() -> None:
     c.add_argument("--source", action="append", required=True, metavar="NAME=FILE", help="a source record (repeatable)")
     c.add_argument("--context", default="", help="one line telling the checker what the output is for")
     c.add_argument("--title", default="Receipt for an AI output")
-    c.add_argument("--banner", default="", help="HTML shown in a box under the title")
+    c.add_argument("--banner", default="", help="HTML shown in a box under the headline")
+    c.add_argument("--output-label", default="The output", help='how to name the output in sentences, e.g. "The draft report"')
+    c.add_argument("--source-phrase", help='how to name the sources in sentences, e.g. "the fact-find"')
     c.add_argument("--out", help="directory for receipt.json, receipt.html and raw_response.txt")
     c.add_argument("--env-file", help="a .env file holding ANTHROPIC_API_KEY")
     c.add_argument("--model", default=MODEL)
@@ -44,7 +46,9 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
     (out / "receipt.json").write_text(json.dumps(result.receipt, indent=2, ensure_ascii=False))
     (out / "raw_response.txt").write_text(result.raw_response)
-    (out / "receipt.html").write_text(render(result.receipt, title=a.title, subtitle=a.context, banner=a.banner))
+    page = render(result.receipt, title=a.title, subtitle=a.context, banner=a.banner, output_text=output,
+                  output_label=a.output_label, source_phrase=a.source_phrase)
+    (out / "receipt.html").write_text(page)
     r = result.receipt
     print(json.dumps({"summary": r["summary"], "tokens": [r["run"]["input_tokens"], r["run"]["output_tokens"]], "out": str(out)}))
 

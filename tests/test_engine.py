@@ -106,3 +106,13 @@ def test_render_shows_quotes_verbatim():
     page = render(check(OUTPUT, SOURCES, client=FakeClient(payload)).receipt)
     assert "You are both in good health." in page and "David had a minor stroke in 2023." in page
     assert "—" not in page
+
+
+def test_render_marks_up_the_checked_text_and_refuses_other_text():
+    payload = {"claims": [claim("You are both in good health.", "CONTRADICTED", ["David had a minor stroke in 2023."])], "omissions": []}
+    receipt = check(OUTPUT, SOURCES, client=FakeClient(payload)).receipt
+    page = render(receipt, output_text=OUTPUT, output_label="The draft")
+    assert "<mark class='con'>You are both in good health.</mark><sup class='con'>F1</sup>" in page
+    assert "The draft contradicts the factfind in 1 place." in page
+    with pytest.raises(ValueError):
+        render(receipt, output_text=OUTPUT + " edited")

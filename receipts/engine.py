@@ -2,7 +2,10 @@
 
 One model call returns claims and omissions as JSON. Code then checks every
 quote word for word. A claim with any failed check becomes NEEDS_HUMAN_CHECK
-and an omission with a failed quote becomes REJECTED. Both stay on the
+and an omission with a failed quote becomes REJECTED. An omission the
+output does not leave out but contradicts (its passage is already the
+evidence for a CONTRADICTED claim) becomes ALREADY_CONTRADICTED, so one
+error is not counted twice. All of them stay on the
 receipt with the reason, so the record shows what the model said as well as
 what survived.
 """
@@ -15,9 +18,9 @@ from collections import Counter
 from dataclasses import dataclass
 
 from receipts.prompt import PROMPT_VERSION, build_prompt, build_schema
-from receipts.verify import found, sha256
+from receipts.verify import found, norm, sha256
 
-ENGINE_VERSION = "0.1.0"
+ENGINE_VERSION = "0.1.1"
 MODEL = "claude-opus-5-5"
 MAX_TOKENS = 16000
 
@@ -47,7 +50,7 @@ def check(output: str, sources: dict[str, str], *, context: str = "", client=Non
     data = json.loads(raw)
 
     claims = [verify_claim(c, output, sources) for c in data["claims"]]
-    omissions = [verify_omission(o, sources) for o in data["omissions"]]
+    omissions = [already_contradicted(verify_omission(o, sources), claims) for o in data["omissions"]]
     body = {
         "summary": {
             "claims": dict(Counter(c["status"] for c in claims)),
@@ -95,3 +98,17 @@ def verify_omission(omission: dict, sources: dict[str, str]) -> dict:
     ok = found(omission["quote"], sources.get(omission["source"], ""))
     problems = [] if ok else [f"quote not found word for word in source '{omission['source']}'"]
     return dict(omission, status="VERIFIED" if ok else "REJECTED", problems=problems)
+
+
+def already_contradicted(omission: dict, claims: list[dict]) -> dict:
+    if omission["status"] != "VERIFIED":
+        return omission
+    quote = norm(omission["quote"])
+    for c in claims:
+        if c["status"] != "CONTRADICTED":
+            continue
+        for p in c["source_quotes"]:
+            cited = norm(p["quote"])
+            if p["source"] == omission["source"] and (quote in cited or cited in quote):
+                return dict(omission, status="ALREADY_CONTRADICTED", contradicts=c["output_quote"])
+    return omission

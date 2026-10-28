@@ -116,3 +116,28 @@ def test_render_marks_up_the_checked_text_and_refuses_other_text():
     assert "The draft contradicts the factfind in 1 place." in page
     with pytest.raises(ValueError):
         render(receipt, output_text=OUTPUT + " edited")
+
+
+def test_an_omission_already_used_to_contradict_a_claim_is_not_counted_twice():
+    payload = {
+        "claims": [claim("You are both in good health.", "CONTRADICTED", ["David had a minor stroke in 2023."])],
+        "omissions": [
+            {"source": "factfind", "quote": "David had a minor stroke in 2023.", "why": "health"},
+            {"source": "factfind", "quote": "Mortgage balance £62,000.", "why": "debt"},
+        ],
+    }
+    r = check(OUTPUT, SOURCES, client=FakeClient(payload)).receipt
+    assert [o["status"] for o in r["omissions"]] == ["ALREADY_CONTRADICTED", "VERIFIED"]
+    assert r["omissions"][0]["contradicts"] == "You are both in good health."
+    page = render(r)
+    assert "leaves out 1 fact." in page and "not counted again as left out" in page
+
+
+def test_headline_verb_agrees_with_the_number_of_sources():
+    from receipts.render import headline
+
+    payload = {"claims": [claim("You are both in good health.", "UNSUPPORTED")], "omissions": []}
+    one = check(OUTPUT, SOURCES, client=FakeClient(payload)).receipt
+    two = check(OUTPUT, {**SOURCES, "terms": "x"}, client=FakeClient(payload)).receipt
+    assert headline(one, "The output", "the factfind").endswith("the factfind does not support.")
+    assert headline(two, "The output", "its sources").endswith("its sources do not support.")

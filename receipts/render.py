@@ -62,7 +62,8 @@ def headline(receipt: dict, output_label: str, source_phrase: str) -> str:
     if n["CONTRADICTED"]:
         parts.append(f"contradicts {source_phrase} in {_plural(n['CONTRADICTED'], 'place')}")
     if n["UNSUPPORTED"]:
-        parts.append(f"makes {_plural(n['UNSUPPORTED'], 'claim')} {source_phrase} does not support")
+        verb = "do" if len(receipt["inputs"]["sources"]) > 1 else "does"
+        parts.append(f"makes {_plural(n['UNSUPPORTED'], 'claim')} {source_phrase} {verb} not support")
     if left_out:
         parts.append(f"leaves out {_plural(left_out, 'fact')}")
     if n["NEEDS_HUMAN_CHECK"]:
@@ -164,6 +165,7 @@ def render(
     consistent = _ordered([c for c in claims if c["status"] == "SUPPORTED"], output_text)
     omissions = [o for o in receipt["omissions"] if o["status"] == "VERIFIED"]
     rejected = [o for o in receipt["omissions"] if o["status"] == "REJECTED"]
+    doubled = [o for o in receipt["omissions"] if o["status"] == "ALREADY_CONTRADICTED"]
     refs = {id(c): f"F{i}" for i, c in enumerate(attention, 1)}
     refs.update({id(c): f"C{i}" for i, c in enumerate(consistent, 1)})
 
@@ -348,7 +350,7 @@ sup.con {{ color: var(--con); }} sup.uns {{ color: var(--uns); }} sup.chk {{ col
 
 <h2><span class="num">Part {basis_part}</span>Basis and limits</h2>
 <div class="basis">
-<div><h3>How this was checked</h3><p>A language model read the output and the sources and proposed each claim, its status and the passages it rests on. Code then matched every quote word for word against the document it names. A claim whose quotes did not match is listed as "Check by hand", never as a finding. {"No proposed omission failed that test." if not rejected else _plural(len(rejected), "proposed omission") + " failed that test and " + ("was" if len(rejected) == 1 else "were") + " left out of this receipt."}</p></div>
+<div><h3>How this was checked</h3><p>A language model read the output and the sources and proposed each claim, its status and the passages it rests on. Code then matched every quote word for word against the document it names. A claim whose quotes did not match is listed as "Check by hand", never as a finding. {"No proposed omission failed that test." if not rejected else _plural(len(rejected), "proposed omission") + " failed that test and " + ("was" if len(rejected) == 1 else "were") + " left out of this receipt."}{"" if not doubled else " " + _plural(len(doubled), "proposed omission") + (" was" if len(doubled) == 1 else " were") + " already the evidence for a contradiction above, so " + ("it is" if len(doubled) == 1 else "they are") + " not counted again as left out."}</p></div>
 <div><h3>What this receipt does not cover</h3><p>It does not decide whether the output is right, suitable or compliant. It does not check facts against anything outside the sources listed. A claim marked consistent means the sources say the same, not that the sources are correct.</p></div>
 </div>
 <h2><span class="num">Part {verify_part}</span>Verification</h2>

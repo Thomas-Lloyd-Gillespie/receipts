@@ -50,7 +50,7 @@ uv run python bench/argus.py --split heldout --env-file PATH  # the reportable r
 
 ## Status (28 Oct 2026)
 
-- Engine 0.1.0, prompt claims-1.1. 32 tests pass.
+- Engine 0.1.1, prompt claims-1.1. 34 tests pass. 0.1.1 stops a fact the output contradicts from also being counted as left out.
 - Made-up Ellery file: all 8 planted contradictions and the planted omission found, no quote failures.
 - ARGUS development set (16 items, not reportable): prompt 1.0 flagged 3 of the 8 outputs the coder marked and 1 of the 8 they did not. Prompt 1.1, which adds causes, labels, outside comparisons and overstatement to what counts as a claim, flagged 6 of 8 and 3 of 8. The extra flags are arguable, and one (S20) is a wrong headline verdict the output never withdraws.
 - Held-out run: not done yet.

@@ -86,6 +86,7 @@ table {{ width: 100%; border-collapse: collapse; margin-top: 3pt; }}
 th {{ text-align: left; font-size: 8.4pt; text-transform: uppercase; letter-spacing: .04em; color: #666; border-bottom: 0.8pt solid #999; padding: 3pt 5pt; }}
 td {{ vertical-align: top; border-bottom: 0.5pt solid #e2ddd5; padding: 4.5pt 5pt; }}
 tr {{ page-break-inside: avoid; }}
+h2, tr:first-child, tr:nth-child(2) {{ break-after: avoid; }}
 .src {{ font-size: 7.6pt; text-transform: uppercase; letter-spacing: .04em; color: #7a6a55; }}
 .unc {{ color: #6b4e00; }}
 .prob {{ color: #8a1c10; }}

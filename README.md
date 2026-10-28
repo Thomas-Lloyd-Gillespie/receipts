@@ -27,6 +27,16 @@ uv run python -m receipts check \
 
 The key comes from `ANTHROPIC_API_KEY` in the environment or the `.env` file. It is never printed. Output goes to `runs/` (gitignored): `receipt.json`, `receipt.html`, `raw_response.txt`.
 
+## The paste page
+
+```bash
+uv run python -m receipts serve --env-file PATH/TO/.env
+```
+
+Open http://127.0.0.1:8765. Paste an AI output and one or more named sources (or press "Fill in the Ellery example"), and the page returns the receipt, with links to print it or download the JSON record. Past receipts are listed on the front page.
+
+It listens on this computer only. Each receipt is saved in `runs/web/<receipt number>/` with its inputs, the model's raw response and the printable page, so it can be shown again and its fingerprints rechecked. Use made-up or anonymised documents only: what you paste is sent to Anthropic's API.
+
 ## Benchmark against the ARGUS blind coding
 
 `bench/argus.py` runs the engine over the 144 outputs from the MSc benchmark and compares its flags with the frozen blind human coding of unsupported assertions (M5, coded 10 Aug 2026). The engine sees only what the ARGUS model saw plus the output. It never sees the coding.
@@ -40,10 +50,11 @@ uv run python bench/argus.py --split heldout --env-file PATH  # the reportable r
 
 ## Status (28 Oct 2026)
 
-- Engine 0.1.0, prompt claims-1.1. 17 tests pass.
+- Engine 0.1.0, prompt claims-1.1. 32 tests pass.
 - Made-up Ellery file: all 8 planted contradictions and the planted omission found, no quote failures.
 - ARGUS development set (16 items, not reportable): prompt 1.0 flagged 3 of the 8 outputs the coder marked and 1 of the 8 they did not. Prompt 1.1, which adds causes, labels, outside comparisons and overstatement to what counts as a claim, flagged 6 of 8 and 3 of 8. The extra flags are arguable, and one (S20) is a wrong headline verdict the output never withdraws.
 - Held-out run: not done yet.
+- Paste page: the Ellery example through the page took 28 seconds. Same 8 contradictions and the planted gift found, 6 facts left out (7 on the earlier run), no quote failures.
 
 ## What it does not do
 

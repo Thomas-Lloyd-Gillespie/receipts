@@ -48,6 +48,11 @@ def receipt_number(receipt: dict) -> str:
     return f"R-{h[:4]}-{h[4:8]}"
 
 
+def default_source_phrase(receipt: dict) -> str:
+    names = [s["name"] for s in receipt["inputs"]["sources"]]
+    return f"the {names[0][0].lower()}{names[0][1:]}" if len(names) == 1 else "its sources"
+
+
 def headline(receipt: dict, output_label: str, source_phrase: str) -> str:
     """The verdict as one sentence, built from the counts. No model writes it."""
     claims = receipt["claims"]
@@ -145,13 +150,14 @@ def render(
     output_text: str | None = None,
     output_label: str = "The output",
     source_phrase: str | None = None,
+    toolbar: str = "",
 ) -> str:
+    """toolbar is HTML shown above the receipt on screen only, never in print."""
     if output_text is not None and sha256(output_text) != receipt["inputs"]["output"]["sha256"]:
         raise ValueError("output_text is not the text this receipt was made from")
     run, inputs = receipt["run"], receipt["inputs"]
-    names = [s["name"] for s in inputs["sources"]]
     if source_phrase is None:
-        source_phrase = f"the {names[0][0].lower()}{names[0][1:]}" if len(names) == 1 else "its sources"
+        source_phrase = default_source_phrase(receipt)
 
     claims = receipt["claims"]
     attention = [c for s in ATTENTION for c in _ordered([c for c in claims if c["status"] == s], output_text)]
@@ -218,7 +224,7 @@ def render(
     banner_html = f"<div class='banner'>{banner}</div>" if banner else ""
     subtitle_html = f"<p class='subject'>{_e(subtitle)}</p>" if subtitle else ""
 
-    return f"""<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><title>{_e(title)} ({number})</title>
+    return f"""<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{_e(title)} ({number})</title>
 <link rel="stylesheet" href="{FONTS}">
 <style>
 :root {{ --ink:#121417; --muted:#59616b; --faint:#8a929c; --rule:#d7dbe0; --hair:#e9ecef; --paper:#fff;
@@ -291,7 +297,28 @@ mark.chk {{ background: var(--chk-bg); box-shadow: inset 0 -1.2pt var(--chk); }}
 sup {{ font: 700 6.4pt var(--sans); margin-left: .6pt; }}
 sup.con {{ color: var(--con); }} sup.uns {{ color: var(--uns); }} sup.chk {{ color: var(--chk); }} sup.ok {{ color: var(--ok); }}
 .end {{ margin-top: 9mm; border-top: .6pt solid var(--rule); padding-top: 2mm; font: 7.8pt var(--sans); color: var(--faint); }}
+.toolbar {{ display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: baseline; padding: 10px 0; margin-bottom: 18px; border-bottom: .6pt solid var(--rule); font: 9pt var(--sans); }}
+.toolbar a, .toolbar button {{ font: inherit; color: var(--ink); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }}
+.toolbar .end-bar {{ margin-left: auto; color: var(--faint); font-family: var(--mono); }}
+@media screen {{ body {{ padding: 0 16px 48px; }} .mast {{ padding-top: 14px; }}
+  .appendix, h2.first {{ margin-top: 16mm; padding-top: 5mm; border-top: 2.2pt solid var(--ink); }} }}
+@media screen and (max-width: 720px) {{
+  body {{ font-size: 10.5pt; }}
+  .top, .finding, .basis {{ grid-template-columns: 1fr; }}
+  .rail {{ order: 2; margin-top: 6mm; }}
+  h1 {{ font-size: 19pt; }}
+  .index li {{ grid-template-columns: 11mm 1fr; }}
+  .index .q {{ grid-column: 2; }}
+  .gutter {{ display: flex; align-items: baseline; gap: 10px; margin-bottom: 2mm; }}
+  .gutter .tag {{ margin-top: 0; }}
+  .consistent tr {{ display: grid; grid-template-columns: 9mm 1fr; }}
+  .consistent td:nth-child(2) {{ width: auto; }}
+  .consistent td:nth-child(3) {{ grid-column: 2; padding-top: 0; }}
+  .verify th {{ width: 28mm; }}
+}}
+@media print {{ .toolbar {{ display: none; }} }}
 </style></head><body>
+{toolbar}
 <header class="mast"><div class="mark">TLG Systems <span>Receipt</span></div><div class="no">{number}</div></header>
 <div class="top">
 <dl class="rail">

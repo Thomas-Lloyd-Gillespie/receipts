@@ -13,7 +13,7 @@ Advice firms are starting to use AI to draft suitability reports and file notes.
 ## What has been tested so far
 
 - **Made-up Ellery file.** A draft equity release suitability report with 8 statements that contradict the fact-find and one client objective left out, written on purpose to test the check. The engine marked all 8 as contradicted, listed the left-out objective (a £5,000 gift to a granddaughter) among the facts the report omits, and had no quote failures. The errors are listed in [`examples/ellery/ANSWER_KEY.md`](examples/ellery/ANSWER_KEY.md) and one full run is in [`examples/ellery/sample-receipt/`](examples/ellery/sample-receipt/). Limit: the file and its errors were written with an AI model (Claude) for this test, so this shows the mechanism works. It does not show how accurate the check is on real advice files.
-- **ARGUS development set.** 16 of the 144 model outputs from my dissertation benchmark, compared with my blind human coding of unsupported assertions. With prompt claims-1.0 the engine flagged 3 of the 8 outputs I had marked and 1 of the 8 I had not. With prompt claims-1.1 it flagged 6 of 8 and 3 of 8. Some of the extra flags are arguable, and one is a wrong headline verdict the output never withdraws. These items were used to develop the prompt, so these are not accuracy figures. Tables in [`bench/dev-runs/`](bench/dev-runs/).
+- **ARGUS development set.** 16 of the 144 model outputs from my dissertation benchmark, compared with my human coding of unsupported assertions. With prompt claims-1.0 the engine flagged 3 of the 8 outputs I had marked and 1 of the 8 I had not. With prompt claims-1.1 it flagged 6 of 8 and 3 of 8. Some of the extra flags are arguable, and one is a wrong headline verdict the output never withdraws. These items were used to develop the prompt, so these are not accuracy figures. Tables in [`bench/dev-runs/`](bench/dev-runs/).
 - **ARGUS held-out run (the other 128 outputs).** Not run yet. This is the only run that would give a reportable number.
 - **Tests.** 34 unit tests, no API calls: `uv run pytest -q`.
 
@@ -54,9 +54,9 @@ Open http://127.0.0.1:8765. Paste an AI output and one or more named sources (or
 
 It listens on this computer only. Each receipt is saved in `runs/web/<receipt number>/` with its inputs, the model's raw response and the printable page, so it can be shown again and its fingerprints rechecked. Use made-up or anonymised documents only: what you paste is sent to Anthropic's API.
 
-## Benchmark against the ARGUS blind coding
+## Benchmark against the ARGUS human coding
 
-`bench/argus.py` runs the engine over the 144 outputs from the MSc benchmark and compares its flags with the frozen blind human coding of unsupported assertions (M5, coded 10 Aug 2026). The engine sees only what the ARGUS model saw plus the output. It never sees the coding.
+`bench/argus.py` runs the engine over the 144 outputs from the MSc benchmark and compares its flags with the frozen human coding of unsupported assertions (M5, coded 10 Aug 2026; the dissertation describes its blinding as partial, because the two explanation formats look different). The engine sees only what the ARGUS model saw plus the output. It never sees the coding.
 
 Same discipline as the dissertation: items used for development are recorded in `bench/argus_dev_set.json`, and only the held-out run (everything else) is reportable.
 

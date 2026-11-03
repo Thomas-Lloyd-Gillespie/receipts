@@ -1,0 +1,246 @@
+<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><title>Advice file check (R-77CC-A39B)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root { --ink:#121417; --muted:#59616b; --faint:#8a929c; --rule:#d7dbe0; --hair:#e9ecef; --paper:#fff;
+  --con:#b0241b; --con-bg:#fbe6e3; --uns:#8f5d00; --uns-bg:#fbefd5; --chk:#5b3fa0; --chk-bg:#ece6f7; --ok:#2c6a4a; --ok-bg:#e3f0e8; --left:#1d4f8f; --left-bg:#e3ecf7;
+  --sans:"Libre Franklin","Franklin Gothic Medium","Helvetica Neue",Arial,sans-serif; --serif:"Source Serif 4",Charter,"Iowan Old Style",Georgia,serif; --mono:"JetBrains Mono",Menlo,monospace; }
+@page { size: A4; margin: 17mm 16mm 18mm 16mm;
+  @bottom-left { content: "R-77CC-A39B"; font: 7.5pt "JetBrains Mono", Menlo, monospace; color: #8a929c; }
+  @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 7.5pt "Libre Franklin", Arial, sans-serif; color: #8a929c; } }
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0 auto; max-width: 178mm; background: var(--paper); color: var(--ink); font: 10pt/1.5 var(--serif); }
+.mast { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2.2pt solid var(--ink); padding-bottom: 5pt; }
+.mark { font: 800 11pt var(--sans); letter-spacing: .02em; }
+.mark span { font-weight: 400; color: var(--muted); }
+.mast .no { font: 500 8.5pt var(--mono); color: var(--muted); }
+.top { display: grid; grid-template-columns: 47mm 1fr; gap: 0 8mm; margin-top: 9mm; }
+.rail { font: 8.4pt/1.45 var(--sans); color: var(--muted); border-top: .6pt solid var(--rule); padding-top: 3mm; }
+.rail dt { font-weight: 700; color: var(--ink); text-transform: uppercase; font-size: 6.8pt; letter-spacing: .09em; margin-top: 4mm; }
+.rail dt:first-child { margin-top: 0; }
+.rail dd { margin: 1pt 0 0; }
+.rail .hash { display: block; font: 7.4pt var(--mono); color: var(--faint); }
+.kicker { font: 700 7.6pt var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--con); margin: 0 0 3mm; }
+h1 { font: 800 23pt/1.08 var(--sans); letter-spacing: -.012em; margin: 0 0 4mm; }
+.subject { font: italic 11pt/1.45 var(--serif); color: var(--muted); margin: 0 0 5mm; }
+.banner { font: 8.6pt/1.45 var(--sans); border: .8pt solid var(--ink); padding: 2.4mm 3mm; margin: 0 0 5mm; }
+.conclusion { border-top: .6pt solid var(--rule); padding-top: 3mm; }
+.label { font: 700 6.8pt var(--sans); letter-spacing: .09em; text-transform: uppercase; margin: 0 0 1.5mm; }
+.conclusion p { margin: 0 0 2.5mm; }
+.index { list-style: none; margin: 7mm 0 0; padding: 0; border-top: 1.4pt solid var(--ink); }
+.index li { display: grid; grid-template-columns: 11mm 26mm 1fr; gap: 3mm; padding: 1.3mm 0; border-bottom: .5pt solid var(--hair); font: 8.8pt/1.4 var(--sans); break-inside: avoid; }
+.index .ref { font: 500 8.4pt var(--mono); color: var(--muted); }
+.index .tag { font-weight: 700; font-size: 7.4pt; text-transform: uppercase; letter-spacing: .07em; padding-top: .6pt; }
+.index .q { font-family: var(--serif); font-size: 9.4pt; }
+li.con .tag, .finding.con .tag { color: var(--con); } li.uns .tag, .finding.uns .tag { color: var(--uns); }
+li.chk .tag, .finding.chk .tag { color: var(--chk); } li.left .tag, .finding.left .tag { color: var(--left); }
+h2 { font: 800 14pt/1.2 var(--sans); margin: 11mm 0 1.5mm; break-after: avoid; break-inside: avoid; }
+h2 .num { display: block; font: 700 7pt var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2mm; }
+.lede { color: var(--muted); margin: 0 0 4mm; font-size: 9.6pt; }
+.finding { display: grid; grid-template-columns: 26mm 1fr; gap: 0 6mm; border-top: .6pt solid var(--rule); padding: 4mm 0 3mm; break-inside: avoid; }
+.gutter .ref { display: block; font: 800 17pt/1 var(--sans); }
+.gutter .tag { display: block; margin-top: 1.6mm; font: 700 7pt var(--sans); letter-spacing: .08em; text-transform: uppercase; }
+.sub-label { font: 700 6.8pt var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0 0 1.2mm; }
+blockquote { margin: 0 0 3mm; }
+blockquote p { margin: 0; }
+.claim p { font-size: 11.6pt; line-height: 1.4; padding-left: 3mm; border-left: 2.2pt solid var(--ink); }
+.finding.con .claim p { border-color: var(--con); } .finding.uns .claim p { border-color: var(--uns); } .finding.chk .claim p { border-color: var(--chk); }
+.src p { padding-left: 3mm; border-left: .8pt solid var(--rule); }
+.src cite, td cite { display: block; padding-left: 3mm; font: normal 700 6.6pt var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--faint); margin-top: .8mm; }
+td cite { display: inline; padding: 0; }
+.none { font-style: italic; color: var(--muted); margin: 0 0 3mm; }
+.why { margin: 0 0 2mm; }
+.note { font-size: 9.2pt; color: var(--muted); margin: 1mm 0 2mm; }
+.note b { color: var(--ink); }
+table { width: 100%; border-collapse: collapse; }
+.consistent td { vertical-align: top; padding: 2.2mm 2.5mm 2.2mm 0; border-bottom: .5pt solid var(--hair); font-size: 9.2pt; line-height: 1.42; }
+.consistent tr { break-inside: avoid; }
+.consistent td.ref { font: 500 8.2pt var(--mono); color: var(--ok); width: 9mm; }
+.consistent td:nth-child(2) { width: 44%; }
+.basis { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8mm; font-size: 9.4pt; }
+.basis h3 { font: 700 8.6pt var(--sans); margin: 0 0 1.5mm; }
+.basis p { margin: 0 0 3mm; }
+.verify th { text-align: left; font: 700 7.6pt var(--sans); padding: 1.4mm 4mm 1.4mm 0; width: 38mm; vertical-align: top; border-bottom: .5pt solid var(--hair); }
+.verify td { font: 7.8pt/1.5 var(--mono); padding: 1.4mm 0; border-bottom: .5pt solid var(--hair); word-break: break-all; }
+.appendix, h2.first { break-before: page; }
+.appendix h2 { margin-top: 0; } h2.first { margin-top: 0; }
+.doc { white-space: pre-wrap; font-size: 9.8pt; line-height: 1.62; border-top: 1.4pt solid var(--ink); padding-top: 4mm; }
+mark { color: inherit; padding: .3pt 0; }
+mark.con { background: var(--con-bg); box-shadow: inset 0 -1.2pt var(--con); } mark.uns { background: var(--uns-bg); box-shadow: inset 0 -1.2pt var(--uns); }
+mark.chk { background: var(--chk-bg); box-shadow: inset 0 -1.2pt var(--chk); } mark.ok { background: none; box-shadow: inset 0 -.8pt var(--ok); }
+sup { font: 700 6.4pt var(--sans); margin-left: .6pt; }
+sup.con { color: var(--con); } sup.uns { color: var(--uns); } sup.chk { color: var(--chk); } sup.ok { color: var(--ok); }
+.end { margin-top: 9mm; border-top: .6pt solid var(--rule); padding-top: 2mm; font: 7.8pt var(--sans); color: var(--faint); }
+</style></head><body>
+<header class="mast"><div class="mark">TLG Systems <span>Receipt</span></div><div class="no">R-77CC-A39B</div></header>
+<div class="top">
+<dl class="rail">
+<dt>Receipt</dt><dd>R-77CC-A39B</dd>
+<dt>Checked</dt><dd>28 October 2026, 02:57 UTC</dd>
+<dt>Subject</dt><dd>The draft report<span class="hash">882c991807c2</span></dd>
+<dt>Checked against</dt><dd>Fact-find<span class='hash'>5ee82599a12a</span></dd>
+<dt>Method</dt><dd>One model reading, then every quote checked word for word by code</dd>
+<dt>Model</dt><dd>claude-opus-5-5<span class="hash">prompt claims-1.1, engine 0.1.0</span></dd>
+</dl>
+<main>
+<p class="kicker">Advice file check</p>
+<h1>The draft report contradicts the fact-find in 8 places, makes 2 claims the fact-find does not support and leaves out 7 facts.</h1>
+<p class='subject'>Draft suitability report for David and Margaret Ellery, equity release (lifetime mortgage), checked against the client fact-find.</p><div class='banner'><b>Made-up file.</b> The clients are fictional and the errors were planted on purpose to show what the check does.</div>
+<div class="conclusion"><p class="label">Conclusion</p>
+<p>Of 17 claims the draft report makes about the case, 10 need attention and 7 are consistent with the fact-find. 7 facts in the fact-find are left out. Every quote in this receipt was matched word for word against the document it comes from.</p>
+<p>This receipt does not judge whether the output is right or suitable. That decision stays with the reviewer.</p></div>
+<ol class="index"><li class='con'><span class='ref'>F1</span><span class='tag'>Contradicted</span><span class='q'>You are both in good health.</span></li><li class='con'><span class='ref'>F2</span><span class='tag'>Contradicted</span><span class='q'>You need £85,000 in total.</span></li><li class='con'><span class='ref'>F3</span><span class='tag'>Contradicted</span><span class='q'>You have discussed your plans with your children, who are supportive.</span></li><li class='con'><span class='ref'>F4</span><span class='tag'>Contradicted</span><span class='q'>Leaving an inheritance is not a priority for you.</span></li><li class='con'><span class='ref'>F5</span><span class='tag'>Contradicted</span><span class='q'>You have confirmed that no grants are available for the adaptations.</span></li><li class='con'><span class='ref'>F6</span><span class='tag'>Contradicted</span><span class='q'>Your monthly budget shows a comfortable surplus of around £450 a month</span></li><li class='con'><span class='ref'>F7</span><span class='tag'>Contradicted</span><span class='q'>You do not wish to make any payments towards the interest.</span></li><li class='con'><span class='ref'>F8</span><span class='tag'>Contradicted</span><span class='q'>You have up-to-date wills and lasting powers of attorney in place.</span></li><li class='uns'><span class='ref'>F9</span><span class='tag'>Not established</span><span class='q'>fund home improvements to make your home more comfortable</span></li><li class='uns'><span class='ref'>F10</span><span class='tag'>Not established</span><span class='q'>which gives you flexibility to manage future costs</span></li><li class='left'><span class='ref'>L1–7</span><span class='tag'>Left out</span><span class='q'>7 facts in the fact-find, listed in full below</span></li></ol>
+</main></div>
+<section class="appendix"><h2><span class="num">Part 1</span>The draft report, marked up</h2>
+<p class="lede">The full text that was checked. Each marked passage carries the number of its finding: red contradicts the sources, amber is not established by them, green is consistent.</p>
+<div class="doc">SUITABILITY REPORT, AI-ASSISTED DRAFT (FICTIONAL CLIENTS, FOR DEMONSTRATION ONLY)
+Prepared for David and Margaret Ellery
+
+Your circumstances
+<mark class='ok'>You are both retired and live in your detached bungalow, which you estimate is worth £410,000.</mark><sup class='ok'>C1</sup> <mark class='ok'>You have lived there for 38 years.</mark><sup class='ok'>C2</sup>
+<mark class='ok'>Your interest-only mortgage of £62,000 must be repaid by 31 December 2026.</mark><sup class='ok'>C3</sup>
+<mark class='ok'>Your total household income is £32,100 a year from your state and private pensions.</mark><sup class='ok'>C4</sup>
+<mark class='con'>You are both in good health.</mark><sup class='con'>F1</sup>
+<mark class='ok'>You wish to keep £10,000 of your savings as an emergency fund.</mark><sup class='ok'>C5</sup>
+
+What you want to achieve
+<mark class='con'>You need £85,000 in total.</mark><sup class='con'>F2</sup> You want to repay your existing mortgage before the lender&#x27;s deadline and <mark class='uns'>fund home improvements to make your home more comfortable</mark><sup class='uns'>F9</sup>.
+
+Your family and inheritance
+<mark class='con'>You have discussed your plans with your children, who are supportive.</mark><sup class='con'>F3</sup>
+<mark class='con'>Leaving an inheritance is not a priority for you.</mark><sup class='con'>F4</sup>
+
+Alternatives we considered
+<mark class='ok'>You considered downsizing but wish to remain in the home you have lived in for 38 years, which suits David&#x27;s mobility.</mark><sup class='ok'>C6</sup>
+<mark class='con'>You have confirmed that no grants are available for the adaptations.</mark><sup class='con'>F5</sup>
+<mark class='ok'>A retirement interest-only mortgage was discussed, but you were concerned about affordability.</mark><sup class='ok'>C7</sup>
+
+Your budget
+<mark class='con'>Your monthly budget shows a comfortable surplus of around £450 a month</mark><sup class='con'>F6</sup>, <mark class='uns'>which gives you flexibility to manage future costs</mark><sup class='uns'>F10</sup>.
+<mark class='con'>You do not wish to make any payments towards the interest.</mark><sup class='con'>F7</sup>
+
+Legal arrangements
+<mark class='con'>You have up-to-date wills and lasting powers of attorney in place.</mark><sup class='con'>F8</sup>
+
+Our recommendation
+We recommend a lifetime mortgage with a no negative equity guarantee, with the interest rate fixed for life.
+</div></section>
+<h2 class="first"><span class="num">Part 2</span>What needs attention</h2>
+<p class="lede">Each finding sets what the draft report says beside what the sources say.</p>
+<section class="finding con">
+<div class="gutter"><span class="ref">F1</span><span class="tag">Contradicted</span></div>
+<div class="body">
+<p class="sub-label">The draft report says</p>
+<blockquote class="claim"><p>You are both in good health.</p></blockquote>
+<p class="sub-label">The sources say</p>
+<blockquote class='src'><p>David: Type 2 diabetes, on medication. Minor stroke in 2023. Uses a walking stick.</p><cite>Fact-find</cite></blockquote>
+<p class="why"><b>Contradicted.</b> Only Margaret is in good health; David has diabetes, has had a stroke and has limited mobility.</p>
+
+</div></section><section class="finding con">
+<div class="gutter"><span class="ref">F2</span><span class="tag">Contradicted</span></div>
+<div class="body">
+<p class="sub-label">The draft report says</p>
+<blockquote class="claim"><p>You need £85,000 in total.</p></blockquote>
+<p class="sub-label">The sources say</p>
+<blockquote class='src'><p>Total required: £82,000.</p><cite>Fact-find</cite></blockquote>
+<p class="why"><b>Contradicted.</b> The fact-find total is £82,000 (£62,000 + £15,000 + £5,000), not £85,000.</p>
+
+</div></section><section class="finding con">
+<div class="gutter"><span class="ref">F3</span><span class="tag">Contradicted</span></div>
+<div class="body">
+<p class="sub-label">The draft report says</p>
+<blockquote class="claim"><p>You have discussed your plans with your children, who are supportive.</p></blockquote>
+<p class="sub-label">The sources say</p>
+<blockquote class='src'><p>Clients have not yet discussed these plans with their children. They want to tell them after the advice.</p><cite>Fact-find</cite></blockquote>
+<p class="why"><b>Contradicted.</b> The children have not been told, so their support is unknown.</p>
+
+</div></section><section class="finding con">
+<div class="gutter"><span class="ref">F4</span><span class="tag">Contradicted</span></div>
+<div class="body">
+<p class="sub-label">The draft report says</p>
+<blockquote class="claim"><p>Leaving an inheritance is not a priority for you.</p></blockquote>
+<p class="sub-label">The sources say</p>
+<blockquote class='src'><p>Clients said: &quot;We want to leave something for Clare and Robert.&quot; (their two children)</p><cite>Fact-find</cite></blockquote><blockquote class='src'><p>Interested in protecting part of the property value for inheritance.</p><cite>Fact-find</cite></blockquote>
+<p class="why"><b>Contradicted.</b> The clients explicitly want to leave an inheritance and are interested in protecting part of the property value.</p>
+
+</div></section><section class="finding con">
+<div class="gutter"><span class="ref">F5</span><span class="tag">Contradicted</span></div>
+<div class="body">
+<p class="sub-label">The draft report says</p>
+<blockquote class="claim"><p>You have confirmed that no grants are available for the adaptations.</p></blockquote>
+<p class="sub-label">The sources say</p>
+<blockquote class='src'><p>Council grants for the adaptations: clients have not looked into this yet.</p><cite>Fact-find</cite></blockquote>
+<p class="why"><b>Contradicted.</b> Grants have not been investigated at all, so nothing has been confirmed.</p>
+
+</div></section><section class="finding con">
+<div class="gutter"><span class="ref">F6</span><span class="tag">Contradicted</span></div>
+<div class="body">
+<p class="sub-label">The draft report says</p>
+<blockquote class="claim"><p>Your monthly budget shows a comfortable surplus of around £450 a month</p></blockquote>
+<p class="sub-label">The sources say</p>
+<blockquote class='src'><p>Monthly net income about £2,330. Monthly spending about £2,210. Surplus about £120 a month.</p><cite>Fact-find</cite></blockquote>
+<p class="why"><b>Contradicted.</b> The surplus is about £120 a month (£2,330 − £2,210), not £450, and the clients themselves find it tight.</p>
+
+</div></section><section class="finding con">
+<div class="gutter"><span class="ref">F7</span><span class="tag">Contradicted</span></div>
+<div class="body">
+<p class="sub-label">The draft report says</p>
+<blockquote class="claim"><p>You do not wish to make any payments towards the interest.</p></blockquote>
+<p class="sub-label">The sources say</p>
+<blockquote class='src'><p>Clients would like to pay some interest each month if they can, but do not want to commit to it.</p><cite>Fact-find</cite></blockquote>
+<p class="why"><b>Contradicted.</b> The clients would like to make voluntary interest payments; they just do not want to commit to them.</p>
+
+</div></section><section class="finding con">
+<div class="gutter"><span class="ref">F8</span><span class="tag">Contradicted</span></div>
+<div class="body">
+<p class="sub-label">The draft report says</p>
+<blockquote class="claim"><p>You have up-to-date wills and lasting powers of attorney in place.</p></blockquote>
+<p class="sub-label">The sources say</p>
+<blockquote class='src'><p>Wills in place (2019). No lasting powers of attorney.</p><cite>Fact-find</cite></blockquote>
+<p class="why"><b>Contradicted.</b> There are no LPAs, and the wills date from 2019, so calling them up to date is not established.</p>
+
+</div></section><section class="finding uns">
+<div class="gutter"><span class="ref">F9</span><span class="tag">Not established</span></div>
+<div class="body">
+<p class="sub-label">The draft report says</p>
+<blockquote class="claim"><p>fund home improvements to make your home more comfortable</p></blockquote>
+<p class="sub-label">The sources say</p>
+<blockquote class='src'><p>b) £15,000 for a level-access shower and kitchen adaptations, because of David&#x27;s mobility.</p><cite>Fact-find</cite></blockquote>
+<p class="why"><b>Not established.</b> These are mobility adaptations needed because of David&#x27;s condition, not comfort improvements.</p>
+
+</div></section><section class="finding uns">
+<div class="gutter"><span class="ref">F10</span><span class="tag">Not established</span></div>
+<div class="body">
+<p class="sub-label">The draft report says</p>
+<blockquote class="claim"><p>which gives you flexibility to manage future costs</p></blockquote>
+<p class="sub-label">The sources say</p>
+<blockquote class='src'><p>Clients are concerned about affordability on a surplus of about £120 a month.</p><cite>Fact-find</cite></blockquote>
+<p class="why"><b>Not established.</b> This rests on the wrong £450 surplus; the actual small surplus does not support a claim of flexibility.</p>
+
+</div></section>
+<h2><span class="num">Part 3</span>In the sources, left out</h2><p class="lede">Facts the sources record that the draft report does not reflect.</p><section class="finding left"><div class="gutter"><span class="ref">L1</span><span class="tag">Left out</span></div>
+<div class="body"><blockquote class='src'><p>c) Gift of £5,000 to granddaughter Ellie for university costs.</p><cite>Fact-find</cite></blockquote><p class="why"><b>Left out.</b> The gift objective is left out of the report entirely.</p></div></section><section class="finding left"><div class="gutter"><span class="ref">L2</span><span class="tag">Left out</span></div>
+<div class="body"><blockquote class='src'><p>David found the first meeting tiring, so a second meeting was arranged.</p><cite>Fact-find</cite></blockquote><p class="why"><b>Left out.</b> This is a potential vulnerability indicator relevant to how the advice is delivered and documented.</p></div></section><section class="finding left"><div class="gutter"><span class="ref">L3</span><span class="tag">Left out</span></div>
+<div class="body"><blockquote class='src'><p>Not receiving Pension Credit. A full benefits check has not been done yet.</p><cite>Fact-find</cite></blockquote><p class="why"><b>Left out.</b> Means-tested benefits could be affected by releasing equity, and the benefits check is still outstanding.</p></div></section><section class="finding left"><div class="gutter"><span class="ref">L4</span><span class="tag">Left out</span></div>
+<div class="body"><blockquote class='src'><p>David receives Attendance Allowance (since 2024).</p><cite>Fact-find</cite></blockquote><p class="why"><b>Left out.</b> This is relevant income and evidence of care needs that the report omits.</p></div></section><section class="finding left"><div class="gutter"><span class="ref">L5</span><span class="tag">Left out</span></div>
+<div class="body"><blockquote class='src'><p>Using savings: will use £8,000 of the ISA towards costs, keeping £10,000.</p><cite>Fact-find</cite></blockquote><p class="why"><b>Left out.</b> Using £8,000 of savings reduces the amount to borrow and should be reflected in the report.</p></div></section><section class="finding left"><div class="gutter"><span class="ref">L6</span><span class="tag">Left out</span></div>
+<div class="body"><blockquote class='src'><p>Adviser suggested involving the children. Clients declined to have them at the meetings.</p><cite>Fact-find</cite></blockquote><p class="why"><b>Left out.</b> The report misstates family involvement, and the clients&#x27; decision to decline it should be recorded.</p></div></section><section class="finding left"><div class="gutter"><span class="ref">L7</span><span class="tag">Left out</span></div>
+<div class="body"><blockquote class='src'><p>Client estimate of value: £410,000. Valuation not yet instructed.</p><cite>Fact-find</cite></blockquote><p class="why"><b>Left out.</b> The borrowing relies on an unverified value, which the report does not mention.</p></div></section>
+<h2><span class="num">Part 4</span>Consistent with the sources</h2>
+<table class="consistent"><tr><td class='ref'>C1</td><td>You are both retired and live in your detached bungalow, which you estimate is worth £410,000.</td><td>Married. Both retired. <cite>Fact-find</cite><br>Client estimate of value: £410,000. Valuation not yet instructed. <cite>Fact-find</cite><div class='note'><b>Open question.</b> The value is only the clients&#x27; estimate, as no valuation has been instructed yet.</div></td></tr><tr><td class='ref'>C2</td><td>You have lived there for 38 years.</td><td>Lived there 38 years. <cite>Fact-find</cite></td></tr><tr><td class='ref'>C3</td><td>Your interest-only mortgage of £62,000 must be repaid by 31 December 2026.</td><td>Outstanding mortgage: £62,000 interest-only with existing lender. Term ended in March 2026. Lender requires repayment by 31 December 2026. <cite>Fact-find</cite></td></tr><tr><td class='ref'>C4</td><td>Your total household income is £32,100 a year from your state and private pensions.</td><td>Total household income: £32,100 a year. <cite>Fact-find</cite><br>David: state pension £10,400; private pension £9,600. <cite>Fact-find</cite><br>Margaret: state pension £8,900; private pension £3,200. <cite>Fact-find</cite><div class='note'><b>Cuts against it.</b> David receives Attendance Allowance (since 2024). <cite>Fact-find</cite></div></td></tr><tr><td class='ref'>C5</td><td>You wish to keep £10,000 of your savings as an emergency fund.</td><td>Clients want to keep £10,000 as an emergency fund. <cite>Fact-find</cite></td></tr><tr><td class='ref'>C6</td><td>You considered downsizing but wish to remain in the home you have lived in for 38 years, which suits David&#x27;s mobility.</td><td>Downsizing: rejected. Clients said: &quot;We&#x27;ve lived here 38 years, and the bungalow suits David&#x27;s mobility.&quot; <cite>Fact-find</cite></td></tr><tr><td class='ref'>C7</td><td>A retirement interest-only mortgage was discussed, but you were concerned about affordability.</td><td>Retirement interest-only mortgage: discussed. Clients are concerned about affordability on a surplus of about £120 a month. <cite>Fact-find</cite></td></tr></table>
+
+<h2><span class="num">Part 5</span>Basis and limits</h2>
+<div class="basis">
+<div><h3>How this was checked</h3><p>A language model read the output and the sources and proposed each claim, its status and the passages it rests on. Code then matched every quote word for word against the document it names. A claim whose quotes did not match is listed as "Check by hand", never as a finding. No proposed omission failed that test.</p></div>
+<div><h3>What this receipt does not cover</h3><p>It does not decide whether the output is right, suitable or compliant. It does not check facts against anything outside the sources listed. A claim marked consistent means the sources say the same, not that the sources are correct.</p></div>
+</div>
+<h2><span class="num">Part 6</span>Verification</h2>
+<p class="lede">Anyone holding the same files can recompute these fingerprints. If a file changes by one character, its fingerprint will not match.</p>
+<table class="verify">
+<tr><th>Receipt</th><td>R-77CC-A39B<br>sha256 77cca39b616a60fb53db84acab8b1914402cd9e29dcbc7761d7dde87a43e319b</td></tr>
+<tr><th>Output checked</th><td>sha256 882c991807c2decac425742bfe45819b065014e2411238b48ccef22b4f63b4c7<br>1,580 characters</td></tr>
+<tr><th>Source: Fact-find</th><td>sha256 5ee82599a12a9b27a21e0d27d968cdfc00b9f9aa4ac22a1393a66fe2eae5e5c1<br>2,571 characters</td></tr>
+<tr><th>Model response</th><td>sha256 52e9cea619e8a14e7a892a3d0674daa7a456409b1d45417f46655c676dfdda0f<br>3,236 tokens in, 3,753 out<br>request req_011CgTtDuFiJkcTW7qomv5P3</td></tr>
+</table>
+<p class="end">TLG Systems Ltd. Receipt R-77CC-A39B. Engine 0.1.0.</p>
+</body></html>

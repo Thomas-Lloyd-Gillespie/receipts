@@ -1,0 +1,366 @@
+{
+  "summary": {
+    "claims": {
+      "SUPPORTED": 7,
+      "CONTRADICTED": 8,
+      "UNSUPPORTED": 2
+    },
+    "omissions": {
+      "VERIFIED": 7
+    }
+  },
+  "claims": [
+    {
+      "output_quote": "You are both retired and live in your detached bungalow, which you estimate is worth £410,000.",
+      "status": "SUPPORTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Married. Both retired."
+        },
+        {
+          "source": "Fact-find",
+          "quote": "Client estimate of value: £410,000. Valuation not yet instructed."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "The value is only the clients' estimate, as no valuation has been instructed yet.",
+      "why": "The fact-find records both as retired and gives the client's own estimate of £410,000.",
+      "model_status": "SUPPORTED",
+      "problems": []
+    },
+    {
+      "output_quote": "You have lived there for 38 years.",
+      "status": "SUPPORTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Lived there 38 years."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "This matches the fact-find.",
+      "model_status": "SUPPORTED",
+      "problems": []
+    },
+    {
+      "output_quote": "Your interest-only mortgage of £62,000 must be repaid by 31 December 2026.",
+      "status": "SUPPORTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Outstanding mortgage: £62,000 interest-only with existing lender. Term ended in March 2026. Lender requires repayment by 31 December 2026."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "The amount and the deadline match the fact-find.",
+      "model_status": "SUPPORTED",
+      "problems": []
+    },
+    {
+      "output_quote": "Your total household income is £32,100 a year from your state and private pensions.",
+      "status": "SUPPORTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Total household income: £32,100 a year."
+        },
+        {
+          "source": "Fact-find",
+          "quote": "David: state pension £10,400; private pension £9,600."
+        },
+        {
+          "source": "Fact-find",
+          "quote": "Margaret: state pension £8,900; private pension £3,200."
+        }
+      ],
+      "counter_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "David receives Attendance Allowance (since 2024)."
+        }
+      ],
+      "uncertainty": "",
+      "why": "The four pensions sum to £32,100, although the Attendance Allowance is not mentioned.",
+      "model_status": "SUPPORTED",
+      "problems": []
+    },
+    {
+      "output_quote": "You are both in good health.",
+      "status": "CONTRADICTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "David: Type 2 diabetes, on medication. Minor stroke in 2023. Uses a walking stick."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "Only Margaret is in good health; David has diabetes, has had a stroke and has limited mobility.",
+      "model_status": "CONTRADICTED",
+      "problems": []
+    },
+    {
+      "output_quote": "You wish to keep £10,000 of your savings as an emergency fund.",
+      "status": "SUPPORTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Clients want to keep £10,000 as an emergency fund."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "This matches the fact-find.",
+      "model_status": "SUPPORTED",
+      "problems": []
+    },
+    {
+      "output_quote": "You need £85,000 in total.",
+      "status": "CONTRADICTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Total required: £82,000."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "The fact-find total is £82,000 (£62,000 + £15,000 + £5,000), not £85,000.",
+      "model_status": "CONTRADICTED",
+      "problems": []
+    },
+    {
+      "output_quote": "fund home improvements to make your home more comfortable",
+      "status": "UNSUPPORTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "b) £15,000 for a level-access shower and kitchen adaptations, because of David's mobility."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "These are mobility adaptations needed because of David's condition, not comfort improvements.",
+      "model_status": "UNSUPPORTED",
+      "problems": []
+    },
+    {
+      "output_quote": "You have discussed your plans with your children, who are supportive.",
+      "status": "CONTRADICTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Clients have not yet discussed these plans with their children. They want to tell them after the advice."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "The children have not been told, so their support is unknown.",
+      "model_status": "CONTRADICTED",
+      "problems": []
+    },
+    {
+      "output_quote": "Leaving an inheritance is not a priority for you.",
+      "status": "CONTRADICTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Clients said: \"We want to leave something for Clare and Robert.\" (their two children)"
+        },
+        {
+          "source": "Fact-find",
+          "quote": "Interested in protecting part of the property value for inheritance."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "The clients explicitly want to leave an inheritance and are interested in protecting part of the property value.",
+      "model_status": "CONTRADICTED",
+      "problems": []
+    },
+    {
+      "output_quote": "You considered downsizing but wish to remain in the home you have lived in for 38 years, which suits David's mobility.",
+      "status": "SUPPORTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Downsizing: rejected. Clients said: \"We've lived here 38 years, and the bungalow suits David's mobility.\""
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "This matches the clients' stated reason.",
+      "model_status": "SUPPORTED",
+      "problems": []
+    },
+    {
+      "output_quote": "You have confirmed that no grants are available for the adaptations.",
+      "status": "CONTRADICTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Council grants for the adaptations: clients have not looked into this yet."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "Grants have not been investigated at all, so nothing has been confirmed.",
+      "model_status": "CONTRADICTED",
+      "problems": []
+    },
+    {
+      "output_quote": "A retirement interest-only mortgage was discussed, but you were concerned about affordability.",
+      "status": "SUPPORTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Retirement interest-only mortgage: discussed. Clients are concerned about affordability on a surplus of about £120 a month."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "This matches the fact-find.",
+      "model_status": "SUPPORTED",
+      "problems": []
+    },
+    {
+      "output_quote": "Your monthly budget shows a comfortable surplus of around £450 a month",
+      "status": "CONTRADICTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Monthly net income about £2,330. Monthly spending about £2,210. Surplus about £120 a month."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "The surplus is about £120 a month (£2,330 − £2,210), not £450, and the clients themselves find it tight.",
+      "model_status": "CONTRADICTED",
+      "problems": []
+    },
+    {
+      "output_quote": "which gives you flexibility to manage future costs",
+      "status": "UNSUPPORTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Clients are concerned about affordability on a surplus of about £120 a month."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "This rests on the wrong £450 surplus; the actual small surplus does not support a claim of flexibility.",
+      "model_status": "UNSUPPORTED",
+      "problems": []
+    },
+    {
+      "output_quote": "You do not wish to make any payments towards the interest.",
+      "status": "CONTRADICTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Clients would like to pay some interest each month if they can, but do not want to commit to it."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "The clients would like to make voluntary interest payments; they just do not want to commit to them.",
+      "model_status": "CONTRADICTED",
+      "problems": []
+    },
+    {
+      "output_quote": "You have up-to-date wills and lasting powers of attorney in place.",
+      "status": "CONTRADICTED",
+      "source_quotes": [
+        {
+          "source": "Fact-find",
+          "quote": "Wills in place (2019). No lasting powers of attorney."
+        }
+      ],
+      "counter_quotes": [],
+      "uncertainty": "",
+      "why": "There are no LPAs, and the wills date from 2019, so calling them up to date is not established.",
+      "model_status": "CONTRADICTED",
+      "problems": []
+    }
+  ],
+  "omissions": [
+    {
+      "source": "Fact-find",
+      "quote": "c) Gift of £5,000 to granddaughter Ellie for university costs.",
+      "why": "The gift objective is left out of the report entirely.",
+      "status": "VERIFIED",
+      "problems": []
+    },
+    {
+      "source": "Fact-find",
+      "quote": "David found the first meeting tiring, so a second meeting was arranged.",
+      "why": "This is a potential vulnerability indicator relevant to how the advice is delivered and documented.",
+      "status": "VERIFIED",
+      "problems": []
+    },
+    {
+      "source": "Fact-find",
+      "quote": "Not receiving Pension Credit. A full benefits check has not been done yet.",
+      "why": "Means-tested benefits could be affected by releasing equity, and the benefits check is still outstanding.",
+      "status": "VERIFIED",
+      "problems": []
+    },
+    {
+      "source": "Fact-find",
+      "quote": "David receives Attendance Allowance (since 2024).",
+      "why": "This is relevant income and evidence of care needs that the report omits.",
+      "status": "VERIFIED",
+      "problems": []
+    },
+    {
+      "source": "Fact-find",
+      "quote": "Using savings: will use £8,000 of the ISA towards costs, keeping £10,000.",
+      "why": "Using £8,000 of savings reduces the amount to borrow and should be reflected in the report.",
+      "status": "VERIFIED",
+      "problems": []
+    },
+    {
+      "source": "Fact-find",
+      "quote": "Adviser suggested involving the children. Clients declined to have them at the meetings.",
+      "why": "The report misstates family involvement, and the clients' decision to decline it should be recorded.",
+      "status": "VERIFIED",
+      "problems": []
+    },
+    {
+      "source": "Fact-find",
+      "quote": "Client estimate of value: £410,000. Valuation not yet instructed.",
+      "why": "The borrowing relies on an unverified value, which the report does not mention.",
+      "status": "VERIFIED",
+      "problems": []
+    }
+  ],
+  "inputs": {
+    "context": "Draft suitability report for David and Margaret Ellery, equity release (lifetime mortgage), checked against the client fact-find.",
+    "output": {
+      "sha256": "882c991807c2decac425742bfe45819b065014e2411238b48ccef22b4f63b4c7",
+      "chars": 1580
+    },
+    "sources": [
+      {
+        "name": "Fact-find",
+        "sha256": "5ee82599a12a9b27a21e0d27d968cdfc00b9f9aa4ac22a1393a66fe2eae5e5c1",
+        "chars": 2571
+      }
+    ]
+  },
+  "run": {
+    "engine_version": "0.1.0",
+    "prompt_version": "claims-1.1",
+    "model": "claude-opus-5-5",
+    "created_at": "2026-10-28T02:57:32+00:00",
+    "request_id": "req_011CgTtDuFiJkcTW7qomv5P3",
+    "input_tokens": 3236,
+    "output_tokens": 3753,
+    "raw_response_sha256": "52e9cea619e8a14e7a892a3d0674daa7a456409b1d45417f46655c676dfdda0f"
+  },
+  "receipt_sha256": "77cca39b616a60fb53db84acab8b1914402cd9e29dcbc7761d7dde87a43e319b"
+}

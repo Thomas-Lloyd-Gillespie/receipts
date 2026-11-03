@@ -9,9 +9,14 @@ Discipline carried over from the dissertation: the sample is fixed by seed,
 every item used for development is recorded in bench/argus_dev_set.json, and
 a held-out run excludes those items. Only held-out numbers are reportable.
 
-    uv run python bench/argus.py --split dev --n 16 --env-file PATH
-    uv run python bench/argus.py --split devset --env-file PATH
-    uv run python bench/argus.py --split heldout --env-file PATH
+The coding files come from the public ARGUS repository
+(github.com/Thomas-Lloyd-Gillespie/argus-financial-ai-assurance). Clone it next
+to this repository, or point --argus-dir (or ARGUS_ANALYSIS_DIR) at its
+analysis folder.
+
+    uv run python bench/argus.py --split dev --n 16
+    uv run python bench/argus.py --split devset
+    uv run python bench/argus.py --split heldout
 """
 
 from __future__ import annotations
@@ -20,6 +25,7 @@ import argparse
 import csv
 import datetime
 import json
+import os
 import pathlib
 import random
 import re
@@ -34,14 +40,19 @@ from receipts.engine import check  # noqa: E402
 from receipts.keys import load_key  # noqa: E402
 from receipts.verify import norm  # noqa: E402
 
-ARGUS = pathlib.Path.home() / "Desktop/projects/dissertation-artefact/analysis"
-VIEW = ARGUS / "coding_view.jsonl"
-SCORES = ARGUS / "coding_scores_primary_144of144_2026-08-10.csv"
+ARGUS = pathlib.Path(
+    os.environ.get("ARGUS_ANALYSIS_DIR", pathlib.Path(__file__).parents[2] / "argus-financial-ai-assurance" / "analysis")
+)
+VIEW_FILE = "coding_view.jsonl"
+SCORES_FILE = "coding_scores_primary_144of144_2026-08-10.csv"
 DEV_SET = pathlib.Path(__file__).with_name("argus_dev_set.json")
 FLAGGED = ("UNSUPPORTED", "CONTRADICTED")
 
 
-def load_items(view=VIEW, scores=SCORES) -> list[dict]:
+def load_items(argus_dir: pathlib.Path = ARGUS) -> list[dict]:
+    view, scores = argus_dir / VIEW_FILE, argus_dir / SCORES_FILE
+    if not view.exists() or not scores.exists():
+        raise SystemExit(f"ARGUS coding files not found in {argus_dir} (set --argus-dir or ARGUS_ANALYSIS_DIR)")
     coded = {r["output_id"]: r for r in csv.DictReader(open(scores, encoding="utf-8"))}
     items = []
     for line in open(view, encoding="utf-8"):
@@ -157,11 +168,12 @@ def main() -> None:
                     help="dev: draw a new sample and add it to the dev set; devset: rerun the whole dev set; heldout: everything else")
     ap.add_argument("--n", type=int, default=16, help="dev sample size, half with human-coded unsupported claims")
     ap.add_argument("--seed", type=int, default=20261028)
-    ap.add_argument("--env-file")
+    ap.add_argument("--env-file", help="a .env file holding ANTHROPIC_API_KEY (default: .env in the repo root)")
+    ap.add_argument("--argus-dir", type=pathlib.Path, default=ARGUS, help="the analysis folder of the ARGUS repository")
     ap.add_argument("--workers", type=int, default=4)
     a = ap.parse_args()
 
-    items = pick(load_items(), a.split, a.n, a.seed)
+    items = pick(load_items(a.argus_dir), a.split, a.n, a.seed)
     client = anthropic.Anthropic(api_key=load_key(a.env_file))
     out = pathlib.Path("runs") / f"argus-{a.split}-{datetime.datetime.now():%Y%m%d-%H%M%S}"
     (out / "receipts").mkdir(parents=True)
